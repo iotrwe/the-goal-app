@@ -299,7 +299,12 @@ function renderDayView() {
   }
   
   document.getElementById('progress-ring-value').textContent = `${pct}%`;
-  document.getElementById('progress-percentage-text').textContent = `${pct}% مكتمل`;
+  const subLabel = document.getElementById('progress-percentage-text');
+  if (subLabel) {
+    const dStr2 = formatDateString(selectedDate);
+    const hasTasks = STATE.days[dStr2] && STATE.days[dStr2].tasks && STATE.days[dStr2].tasks.length > 0;
+    subLabel.textContent = hasTasks ? `${pct}% مكتمل` : 'لا توجد مهام بعد — أضف مهمة أو خطط مع Kimi';
+  }
 
   renderTimelineGrid();
   renderWeeklyGoalTab();

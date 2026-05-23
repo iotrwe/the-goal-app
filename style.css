@@ -510,17 +510,13 @@ main {
   gap: 16px;
 }
 
-/* Progress card details */
+/* Progress card - premium redesign */
 .progress-card {
-  background: var(--bg-card);
-  border: var(--border-light);
-  border-radius: 24px;
-  padding: 14px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  backdrop-filter: blur(var(--blur-amount));
-  box-shadow: var(--shadow-premium);
+  background: rgba(16, 185, 129, 0.04);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 20px;
+  padding: 16px 16px 14px;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.06), inset 0 1px 0 rgba(16, 185, 129, 0.08);
   position: relative;
   overflow: hidden;
 }
@@ -528,49 +524,49 @@ main {
 .progress-card::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 0; left: 0; right: 0;
   height: 1px;
-  background: var(--grad-dark-glass);
+  background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.3), transparent);
 }
 
-.progress-details h3 {
-  font-size: 1.15rem;
+.progress-title {
+  font-size: 1rem;
   font-weight: 700;
-  margin-bottom: 4px;
-}
-
-.progress-details p {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-}
-
-.progress-ring-wrapper {
-  position: relative;
-  width: 80px;
-  height: 80px;
+  color: #e2e8f0;
   display: flex;
-  justify-content: center;
   align-items: center;
 }
 
-.progress-ring {
-  transform: rotate(-90deg);
-}
-
-.progress-ring-circle {
-  transition: stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  stroke-dasharray: 201; /* 2 * PI * r (32) = 201 */
-  stroke-dashoffset: 201;
-}
-
-.progress-ring-value {
-  position: absolute;
-  font-size: 0.95rem;
-  font-weight: 800;
+.progress-pct-badge {
+  font-size: 1.4rem;
+  font-weight: 900;
   color: #10b981;
-  text-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+  text-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+  min-width: 52px;
+  text-align: center;
+}
+
+.progress-bar-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.progress-bar-glow {
+  height: 100%;
+  border-radius: 30px;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+}
+
+.progress-sub-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-style: italic;
 }
 
 /* Tasks list styles */

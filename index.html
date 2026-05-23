@@ -173,29 +173,21 @@
           
           <!-- Daily Progress Compact Bar -->
           <div class="progress-card">
-            <div class="progress-details" style="flex:1;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <h3>معدل إنجاز اليوم</h3>
-                <div class="progress-ring-value" id="progress-ring-value" style="position:static; font-size:1.2rem;">0%</div>
-              </div>
-              <!-- Progress bar instead of SVG ring -->
-              <div style="width:100%; height:8px; border-radius:30px; background:rgba(255,255,255,0.05); overflow:hidden;">
-                <div id="daily-progress-bar" style="height:100%; border-radius:30px; background:linear-gradient(90deg,#10b981,#059669); width:0%; transition:width 0.6s cubic-bezier(0.16,1,0.3,1); box-shadow:0 0 10px rgba(16,185,129,0.3);"></div>
-              </div>
-              <p id="progress-percentage-text" style="margin-top:6px; font-size:0.78rem;">0% مكتمل</p>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <h3 class="progress-title">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-left:6px;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                معدل إنجاز اليوم
+              </h3>
+              <div class="progress-pct-badge" id="progress-ring-value">0%</div>
             </div>
-            <!-- Hidden SVG ring kept for JS compatibility -->
-            <svg style="display:none;">
-              <defs>
-                <linearGradient id="emeraldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#10b981" />
-                  <stop offset="100%" stop-color="#059669" />
-                </linearGradient>
-              </defs>
-              <circle id="daily-progress-circle" class="progress-ring-circle" stroke="url(#emeraldGradient)" stroke-width="6" fill="transparent" r="32" cx="40" cy="40"></circle>
-            </svg>
+            <!-- Progress Bar -->
+            <div class="progress-bar-track">
+              <div id="daily-progress-bar" class="progress-bar-glow" style="width:0%;"></div>
+            </div>
+            <p id="progress-percentage-text" class="progress-sub-label">لا توجد مهام بعد — أضف مهمة أو خطط مع Kimi</p>
+            <!-- Hidden SVG kept for JS compatibility -->
+            <svg style="display:none;"><defs><linearGradient id="emeraldGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#10b981"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs><circle id="daily-progress-circle" class="progress-ring-circle" stroke="url(#emeraldGradient)" stroke-width="6" fill="transparent" r="32" cx="40" cy="40"></circle></svg>
           </div>
-
 
           <!-- Active Goals Section -->
           <div class="goals-section">
