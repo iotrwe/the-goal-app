@@ -1,0 +1,26 @@
+{
+  "name": "The Goal",
+  "short_name": "The Goal",
+  "description": "نظام تتبع وإدارة الحياة لمدة سنة ونصف - خطط ليلًا، نفذ نهارًا، حلل أسبوعيًا",
+  "start_url": "index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07070c",
+  "theme_color": "#08080c",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

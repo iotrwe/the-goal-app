@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>The Goal | بوصلة حياتك</title>
+  
+  <!-- PWA Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#08080c">
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Cache Buster & Service Worker Unregister for Development/Instant Refresh -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for(let registration of registrations) {
+          registration.unregister();
+          console.log('Service Worker Unregistered successfully.');
+        }
+      });
+    }
+    if ('caches' in window) {
+      caches.keys().then(function(names) {
+        for (let name of names) {
+          caches.delete(name);
+          console.log('Cache cleared:', name);
+        }
+      });
+    }
+  </script>
+
+  <!-- Google Fonts: Cairo & Tajawal -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css?v=2.0">
+</head>
+<body>
+
+  <!-- Splash Screen / Loading -->
+  <div id="splash" class="splash-screen">
+    <div class="splash-logo">
+      <div class="logo-circle">
+        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polygon points="12 8 8 12 12 16 16 12 12 8"></polygon>
+        </svg>
+      </div>
+      <h1 class="splash-title">The Goal</h1>
+      <p class="splash-subtitle">خطط ليلًا، نفذ نهارًا، حلل أسبوعيًا</p>
+    </div>
+  </div>
+
+  <!-- Lockscreen Screen Overlay -->
+  <div id="lockscreen" class="lockscreen-overlay hidden">
+    <div class="lockscreen-container">
+      <div class="lock-logo-circle">
+        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.5">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+      </div>
+      <h2 class="lock-title">الملف محمي</h2>
+      <p class="lock-subtitle">أدخل رمز الدخول لفتح بوصلة حياتك</p>
+      
+      <div class="pin-dots-container" id="pin-dots">
+        <div class="pin-dot"></div>
+        <div class="pin-dot"></div>
+        <div class="pin-dot"></div>
+        <div class="pin-dot"></div>
+      </div>
+      
+      <!-- Keypad -->
+      <div class="pin-keypad">
+        <button class="keypad-btn" data-val="1">1</button>
+        <button class="keypad-btn" data-val="2">2</button>
+        <button class="keypad-btn" data-val="3">3</button>
+        <button class="keypad-btn" data-val="4">4</button>
+        <button class="keypad-btn" data-val="5">5</button>
+        <button class="keypad-btn" data-val="6">6</button>
+        <button class="keypad-btn" data-val="7">7</button>
+        <button class="keypad-btn" data-val="8">8</button>
+        <button class="keypad-btn" data-val="9">9</button>
+        <button class="keypad-btn keypad-clear" id="keypad-clear" title="مسح">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
+            <line x1="18" y1="9" x2="12" y2="15"></line>
+            <line x1="12" y1="9" x2="18" y2="15"></line>
+          </svg>
+        </button>
+        <button class="keypad-btn" data-val="0">0</button>
+        <button class="keypad-btn keypad-confirm" id="keypad-confirm" title="موافق">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Wrapper -->
+  <div id="app" class="app-container hidden">
+    
+    <!-- Main Content Area -->
+    <main id="main-content">
+      
+      <!-- PAGE 1: EVENING CHAT -->
+      <section id="page-chat" class="page-section active">
+        <header class="page-header">
+          <div class="header-info">
+            <span class="header-tag">محادثة المساء</span>
+            <h2 class="header-title">تخطيط الغد مع Kimi</h2>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="settings-btn" id="clear-chat-btn" title="بدء محادثة جديدة" style="color:#ef4444; border-color:rgba(239, 68, 68, 0.15); background:rgba(239, 68, 68, 0.03);">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
+            <button class="settings-btn" id="open-goals-btn" title="تعديل الأهداف">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <div class="chat-container">
+          <div class="chat-messages" id="chat-messages">
+            <!-- Messages populated by JS -->
+          </div>
+
+          <div class="chat-input-area" style="padding-bottom: 20px;">
+            <textarea id="chat-input" placeholder="أخبر المساعد بيومك غداً واطلب منه صياغة الخطة..." rows="1"></textarea>
+            <button id="send-chat-btn" class="send-btn" disabled>
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAGE 2: MY DAY -->
+      <section id="page-day" class="page-section">
+        <header class="page-header">
+          <div class="header-info">
+            <span class="header-tag" id="current-day-tag">اليوم الحالي</span>
+            <h2 class="header-title" id="day-title-main">السبت، 23 مايو 2026</h2>
+          </div>
+          <div class="header-actions">
+            <button class="icon-btn" id="timeline-toggle-btn" title="تصفح الـ 1.5 سنة">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <!-- Main Daily Content -->
+        <div class="day-scroll-container">
+          
+          <!-- Daily Progress Ring/Card -->
+          <div class="progress-card">
+            <div class="progress-details">
+              <h3>معدل إنجاز اليوم</h3>
+              <p id="progress-percentage-text">0% مكتمل</p>
+            </div>
+            <div class="progress-ring-wrapper">
+              <svg class="progress-ring" width="80" height="80">
+                <circle class="progress-ring-circle-bg" stroke="rgba(255,255,255,0.05)" stroke-width="6" fill="transparent" r="32" cx="40" cy="40"></circle>
+                <circle id="daily-progress-circle" class="progress-ring-circle" stroke="url(#emeraldGradient)" stroke-width="6" fill="transparent" r="32" cx="40" cy="40"></circle>
+                <defs>
+                  <linearGradient id="emeraldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#10b981" />
+                    <stop offset="100%" stop-color="#059669" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div class="progress-ring-value" id="progress-ring-value">0%</div>
+            </div>
+          </div>
+
+          <!-- Tasks List Section -->
+          <div class="tasks-section">
+            <div class="section-title-bar">
+              <h3>قائمة مهام اليوم</h3>
+              <button class="add-task-btn" id="add-day-task-btn">+ إضافة مهمة</button>
+            </div>
+            <div class="tasks-list" id="tasks-list">
+              <!-- Tasks populated by JS -->
+            </div>
+          </div>
+          
+        </div>
+
+        <!-- TIMELINE DRAWER (Swipe-up Panel) -->
+        <div id="timeline-drawer" class="timeline-drawer">
+          <div class="drawer-handle-bar" id="drawer-handle">
+            <div class="drawer-pill"></div>
+          </div>
+          
+          <div class="drawer-content">
+            
+            <!-- Quick Toggle Tabs inside Drawer -->
+            <div class="drawer-tabs">
+              <button class="drawer-tab-btn active" data-target="drawer-timeline">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-left:6px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>أفق 1.5 سنة
+              </button>
+              <button class="drawer-tab-btn" data-target="drawer-weekly">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-left:6px;"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>أهداف الأسبوع
+              </button>
+            </div>
+
+            <!-- TAB 1: 1.5 Years Extended Calendar -->
+            <div id="drawer-timeline" class="drawer-tab-content active">
+              <div class="timeline-search-bar">
+                <span>تصفح الجدول الزمني لـ 540 يوماً القادمة</span>
+                <button id="go-to-today-btn" class="action-btn-secondary">اليوم الحالي</button>
+              </div>
+              <div class="months-timeline" id="months-timeline">
+                <!-- 1.5 years months and days populated by JS -->
+              </div>
+            </div>
+
+            <!-- TAB 2: Weekly Dashboard -->
+            <div id="drawer-weekly" class="drawer-tab-content">
+              <div class="weekly-goal-card">
+                <div class="goal-header">
+                  <h4 style="display:flex; align-items:center; gap:6px;">
+                    <span style="color:#a78bfa; display:flex;">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+                    </span>
+                    هدف الأسبوع الحالي
+                  </h4>
+                  <button class="edit-goal-icon-btn" id="edit-weekly-goal-btn">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polygon points="11 2 22 2 22 13 11 2"></polygon>
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                  </button>
+                </div>
+                <p id="weekly-goal-display" class="empty-placeholder">لم يتم تحديد هدف الأسبوع بعد. اضغط تعديل للكتابة.</p>
+                
+                <div class="gym-tracker-box">
+                  <div class="gym-info">
+                    <h5 style="display:flex; align-items:center; gap:6px;">
+                      <span style="color:#06b6d4; display:flex;">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="18" y2="12"></line><line x1="6" y1="7" x2="6" y2="17"></line><line x1="18" y1="7" x2="18" y2="17"></line><rect x="2" y="9" width="2" height="6" rx="1"></rect><rect x="20" y="9" width="2" height="6" rx="1"></rect></svg>
+                      </span>
+                      تحدي النادي الرياضي (الجيم)
+                    </h5>
+                    <span id="gym-count-display">0 من أصل 3 أيام</span>
+                  </div>
+                  <div class="gym-actions">
+                    <button class="counter-btn" id="gym-minus-btn">-</button>
+                    <span class="counter-val" id="gym-current-val">0</span>
+                    <button class="counter-btn" id="gym-plus-btn">+</button>
+                  </div>
+                </div>
+
+                <div class="weekly-progress">
+                  <div class="progress-header">
+                    <span>نسبة الاقتراب من الهدف</span>
+                    <span id="weekly-progress-pct">0%</span>
+                  </div>
+                  <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="weekly-progress-fill" style="width: 0%"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weekly-completed-tasks">
+                <h4>مهام أنجزت هذا الأسبوع</h4>
+                <ul class="completed-tasks-list" id="weekly-completed-tasks-list">
+                  <!-- List of completed tasks this week -->
+                </ul>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- PAGE 3: ANALYSIS -->
+      <section id="page-analysis" class="page-section">
+        <header class="page-header">
+          <div class="header-info">
+            <span class="header-tag">لوحة التحليل</span>
+            <h2 class="header-title">أداء الـ 4 أسابيع الماضية</h2>
+          </div>
+          <button class="icon-btn" id="marriage-edit-btn" title="تعديل حصالة الزواج">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </button>
+        </header>
+
+        <div class="analysis-scroll-container">
+          
+          <!-- Marriage Goal Progress Card -->
+          <div class="marriage-card glass-card">
+            <div class="marriage-icon" id="marriage-svg-icon">
+              <!-- Custom geometric rings SVG loaded locally -->
+              <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="14" r="5" stroke="#f59e0b"></circle><circle cx="16" cy="14" r="5" stroke="#d97706"></circle><path d="M12 4L9 8L12 4ZM12 4L15 8L12 4Z" stroke="#f59e0b"></path></svg>
+            </div>
+            <div class="marriage-content">
+              <h3>توفير الزواج (هدفي الأكبر)</h3>
+              <div class="marriage-values">
+                <span id="marriage-saved-text">0 ج.م</span>
+                <span class="marriage-separator">من أصل</span>
+                <span id="marriage-target-text">180,000 ج.م</span>
+              </div>
+              
+              <div class="marriage-progress-bar">
+                <div class="marriage-progress-fill" id="marriage-progress-fill" style="width: 0%"></div>
+              </div>
+              
+              <div class="marriage-footer">
+                <span id="marriage-pct-text">0% مكتمل</span>
+                <button class="action-btn-secondary" id="add-saving-btn">+ إضافة ادخار</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Trend Chart Card -->
+          <div class="chart-card glass-card">
+            <div class="chart-header">
+              <h3>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-left:6px;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>اتجاه الإنجاز اليومي
+              </h3>
+              <span class="trend-indicator" id="trend-indicator-text">ثابت <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" style="display:inline; vertical-align:middle; margin-right:4px;"><line x1="5" y1="12" x2="19" y2="12"></line></svg></span>
+            </div>
+            <div class="svg-chart-container">
+              <svg id="trend-svg" class="trend-svg" viewBox="0 0 400 150">
+                <!-- SVG elements dynamically generated -->
+              </svg>
+            </div>
+            <div class="chart-labels" id="chart-labels">
+              <span>الأسبوع 4</span>
+              <span>الأسبوع 3</span>
+              <span>الأسبوع 2</span>
+              <span>الأسبوع 1</span>
+              <span>الحالي</span>
+            </div>
+          </div>
+
+          <!-- Weeks Accordion / History -->
+          <div class="weeks-accordion-section">
+            <h3 class="section-title">مراجعة الأسابيع الفائتة</h3>
+            <div class="weeks-list" id="analysis-weeks-list">
+              <!-- Dynamically populated past weeks (last 4 weeks + current week) -->
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav">
+      <button class="nav-item" id="nav-chat" data-target="page-chat">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </div>
+        <span class="nav-label">محادثة المساء</span>
+      </button>
+      
+      <button class="nav-item active" id="nav-day" data-target="page-day">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <span class="nav-label">يومي</span>
+      </button>
+      
+      <button class="nav-item" id="nav-analysis" data-target="page-analysis">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+        </div>
+        <span class="nav-label">التحليل</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- PLAN PROPOSAL MODAL (Page 1 -> Page 2 Transition) -->
+  <div id="plan-proposal-modal" class="modal-overlay hidden">
+    <div class="modal-container glass-modal">
+      <div class="modal-header">
+        <h3>مسودة خطة الغد المقترحة</h3>
+        <button class="close-modal-btn" id="close-plan-modal-btn">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">راجع الخطة المستخرجة من المحادثة، يمكنك التعديل أو الحذف أو الإضافة قبل الاعتماد النهائي.</p>
+        
+        <div class="proposed-tasks-container" id="proposed-tasks-list">
+          <!-- Proposed tasks to approve -->
+        </div>
+
+        <div class="modal-add-task-row">
+          <input type="text" id="modal-new-task-text" placeholder="اسم المهمة الجديدة...">
+          <input type="text" id="modal-new-task-time" placeholder="الوقت (مثال: 07:00 م)...">
+          <button class="action-btn-secondary" id="modal-add-task-btn">+</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="action-btn-secondary" id="modal-cancel-btn">إلغاء</button>
+        <button class="action-btn-primary" id="modal-approve-btn">اعتماد خطة الغد ونقلها لصفحة يومي</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GLOBAL GOALS EDITOR MODAL -->
+  <div id="goals-editor-modal" class="modal-overlay hidden">
+    <div class="modal-container glass-modal">
+      <div class="modal-header">
+        <h3>لوحة إعدادات الأهداف الكبرى</h3>
+        <button class="close-modal-btn" id="close-goals-modal-btn">×</button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- API Config Section -->
+        <div class="config-section">
+          <h4><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#8b5cf6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-left:6px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M12 2v9m-4-7h8m-8 4h8"></path></svg>إعدادات Fireworks AI والحماية</h4>
+          <div class="form-row">
+            <div class="form-group half">
+              <label for="config-api-key">مفتاح API الخاص بك:</label>
+              <input type="password" id="config-api-key" placeholder="أدخل مفتاح fw_...">
+            </div>
+            <div class="form-group half">
+              <label for="config-app-pin">رمز دخول PIN (4 أرقام):</label>
+              <input type="password" id="config-app-pin" maxLength="4" placeholder="الافتراضي: 1234" style="text-align:center; letter-spacing:4px; font-weight:700;">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="config-api-model">الموديل (Model):</label>
+            <input type="text" id="config-api-model" value="accounts/fireworks/models/kimi-k2p6">
+          </div>
+        </div>
+
+        <hr class="modal-divider">
+
+        <!-- Goals Setting Section -->
+        <div class="config-section">
+          <h4><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-left:6px;"><circle cx="12" cy="14" r="5"></circle><path d="M12 4L9 8L12 4ZM12 4L15 8L12 4Z"></path></svg>إعدادات حصالة هدف الزواج</h4>
+          <div class="form-row">
+            <div class="form-group half">
+              <label for="config-marriage-target">الهدف المالي الكلي (ج.م):</label>
+              <input type="number" id="config-marriage-target" value="180000">
+            </div>
+            <div class="form-group half">
+              <label for="config-marriage-current">المبلغ المدخر حالياً (ج.م):</label>
+              <input type="number" id="config-marriage-current" value="32000">
+            </div>
+          </div>
+        </div>
+
+        <hr class="modal-divider">
+
+        <!-- Long-term Goals Setting -->
+        <div class="config-section">
+          <h4><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-left:6px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>أهداف الأفق الطويل (1.5 سنة)</h4>
+          <div class="form-group">
+            <label for="config-yearly-goals">الهدف الرئيسي للمشروع / السنة والنصف:</label>
+            <textarea id="config-yearly-goals" rows="2" placeholder="اكتب رؤيتك الكبرى للسنة والنصف القادمة..."></textarea>
+          </div>
+          <div class="form-group">
+            <label for="config-monthly-goals">الهدف الرئيسي للشهر الحالي:</label>
+            <textarea id="config-monthly-goals" rows="2" placeholder="ماذا تريد أن تنجز هذا الشهر..."></textarea>
+          </div>
+        </div>
+
+        <hr class="modal-divider">
+
+        <!-- GitHub Cloud Sync Section -->
+        <div class="config-section">
+          <h4><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-left:6px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>المزامنة السحابية التلقائية (جيت هب)</h4>
+          <p style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:10px; line-height:1.4;">اربط التطبيق بمستودع جيت هب خاص لحفظ تقدمك ومحادثاتك بشكل آمن وتلقائي.</p>
+          
+          <div class="form-row" style="margin-bottom:8px;">
+            <div class="form-group half">
+              <label for="config-gh-user">اسم المستخدم (Username):</label>
+              <input type="text" id="config-gh-user" placeholder="مثال: user123" style="font-size:0.8rem; padding:8px 10px;">
+            </div>
+            <div class="form-group half">
+              <label for="config-gh-repo">اسم المستودع (Repository):</label>
+              <input type="text" id="config-gh-repo" placeholder="مثال: the-goal-data" style="font-size:0.8rem; padding:8px 10px;">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:10px;">
+            <label for="config-gh-token">مفتاح الوصول الشخصي (Personal Token):</label>
+            <input type="password" id="config-gh-token" placeholder="أدخل مفتاح ghp_..." style="font-size:0.8rem; padding:8px 10px;">
+          </div>
+          
+          <div class="form-row" style="gap:8px; align-items:center;">
+            <button class="action-btn-secondary" id="gh-sync-btn" style="flex:1; display:inline-flex; align-items:center; justify-content:center; gap:6px; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.03); color:#10b981; padding:8px 6px; font-size:0.8rem; font-weight:700;">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>مزامنة سحابية الآن
+            </button>
+            <span id="gh-sync-badge" style="font-size:0.72rem; padding:6px 10px; border-radius:30px; background:rgba(255,255,255,0.05); color:var(--text-secondary); text-align:center; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">غير متصل ⚠️</span>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="action-btn-secondary" id="config-cancel-btn">إلغاء</button>
+        <button class="action-btn-primary" id="config-save-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:6px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>حفظ الإعدادات والتحديث</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK ADD SAVING MODAL -->
+  <div id="saving-modal" class="modal-overlay hidden">
+    <div class="modal-container glass-modal small">
+      <div class="modal-header">
+        <h3>إضافة مبلغ للادخار</h3>
+        <button class="close-modal-btn" id="close-saving-modal-btn">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="saving-amount-input">المبلغ المراد إضافته (بالجنيه المصري):</label>
+          <input type="number" id="saving-amount-input" placeholder="مثال: 5000">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="action-btn-secondary" id="saving-cancel-btn">إلغاء</button>
+        <button class="action-btn-primary" id="saving-save-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:6px;"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>إضافة الآن</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PARTIAL PERCENTAGE MODAL (New Ultra-Premium Slider Modal) -->
+  <div id="partial-percentage-modal" class="modal-overlay hidden">
+    <div class="modal-container glass-modal small">
+      <div class="modal-header">
+        <h3>تحديد نسبة إنجاز المهمة الجزئية</h3>
+        <button class="close-modal-btn" id="close-partial-modal-btn">×</button>
+      </div>
+      <div class="modal-body" style="align-items: center; text-align: center; gap: 20px; padding: 24px 20px;">
+        <span style="color:#f59e0b; display:flex;">
+          <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        </span>
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <h4 id="partial-task-title-text" style="font-size:0.95rem; color:#fff; font-weight:700;">اسم المهمة</h4>
+          <p class="modal-desc">اسحب المنزلق لتحديد نسبة ما تم إنجازه بدقة</p>
+        </div>
+        
+        <div style="width:100%; display:flex; flex-direction:column; align-items:center; gap:10px; margin: 10px 0;">
+          <div id="partial-pct-badge" style="font-size:2.2rem; font-weight:900; color:#f59e0b; text-shadow:0 0 15px rgba(245,158,11,0.25);">50%</div>
+          <input type="range" id="partial-pct-slider" min="10" max="90" step="10" value="50" style="width:90%; accent-color:#f59e0b; height:6px; border-radius:10px; cursor:pointer;">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="action-btn-secondary" id="partial-cancel-btn">إلغاء</button>
+        <button class="action-btn-primary" id="partial-save-btn" style="background:var(--grad-gold); box-shadow:0 0 15px rgba(245,158,11,0.25);"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:6px;"><polyline points="20 6 9 17 4 12"></polyline></svg>تأكيد النسبة</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAY TASK QUICK ADD MODAL -->
+  <div id="day-task-modal" class="modal-overlay hidden">
+    <div class="modal-container glass-modal small">
+      <div class="modal-header">
+        <h3>إضافة مهمة جديدة اليوم</h3>
+        <button class="close-modal-btn" id="close-day-task-modal-btn">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="new-task-text-input">اسم المهمة:</label>
+          <input type="text" id="new-task-text-input" placeholder="مثال: جلسة مذاكرة فيزياء">
+        </div>
+        <div class="form-group">
+          <label for="new-task-time-input">الوقت المقترح (اختياري):</label>
+          <input type="text" id="new-task-time-input" placeholder="مثال: 08:30 مساءً">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="action-btn-secondary" id="day-task-cancel-btn">إلغاء</button>
+        <button class="action-btn-primary" id="day-task-save-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:6px;"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>إضافة المهمة</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WEEKLY GOAL EDIT MODAL -->
+  <div id="weekly-goal-modal" class="modal-overlay hidden">
+    <div class="modal-container glass-modal small">
+      <div class="modal-header">
+        <h3>تعديل هدف الأسبوع الحالي</h3>
+        <button class="close-modal-btn" id="close-weekly-goal-modal-btn">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="weekly-goal-input">نص هدف الأسبوع:</label>
+          <textarea id="weekly-goal-input" rows="3" placeholder="مثال: 3 أيام جيم، إنجاز كود الواجهات والتصميم"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="weekly-gym-input">عدد أيام الجيم المستهدفة:</label>
+          <input type="number" id="weekly-gym-input" value="3" min="0" max="7">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="action-btn-secondary" id="weekly-goal-cancel-btn">إلغاء</button>
+        <button class="action-btn-primary" id="weekly-goal-save-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:6px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>حفظ</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=2.0"></script>
+</body>
+</html>
