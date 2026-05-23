@@ -1952,6 +1952,7 @@ main {
 
 /* Numeric Keypad */
 .pin-keypad {
+  direction: ltr; /* Force Left-to-Right layout for standard dialpad alignment */
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;

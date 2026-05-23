@@ -1902,7 +1902,7 @@ const lockscreenOverlay = document.getElementById('lockscreen');
 let enteredPin = "";
 
 function initLockscreen() {
-  const isAuth = sessionStorage.getItem('the_goal_authenticated') === 'true';
+  const isAuth = localStorage.getItem('the_goal_authenticated') === 'true';
   
   if (isAuth) {
     lockscreenOverlay.classList.add('hidden');
@@ -1957,7 +1957,7 @@ function updatePinDots() {
 function verifyPIN() {
   const correctPin = STATE.settings.appPin || "1234";
   if (enteredPin === correctPin) {
-    sessionStorage.setItem('the_goal_authenticated', 'true');
+    localStorage.setItem('the_goal_authenticated', 'true');
     lockscreenOverlay.classList.add('fade-out');
     setTimeout(() => {
       lockscreenOverlay.classList.add('hidden');
@@ -1980,6 +1980,14 @@ function verifyPIN() {
     }, 450);
   }
 }
+
+// Lock button click handler
+document.getElementById('config-lock-btn').addEventListener('click', () => {
+  if (confirm("هل تريد قفل التطبيق فوراً؟ سيتعين عليك إدخال رمز الـ PIN مجدداً عند الفتح.")) {
+    localStorage.removeItem('the_goal_authenticated');
+    location.reload();
+  }
+});
 
 // Start lockscreen verification
 initLockscreen();
