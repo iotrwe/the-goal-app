@@ -317,12 +317,47 @@ main {
   border-bottom-right-radius: 4px;
 }
 
-.message-time {
-  font-size: 0.7rem;
-  color: var(--text-muted);
+.message-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin-top: 4px;
-  align-self: flex-end;
-  padding: 0 4px;
+  padding: 0 2px;
+}
+
+.message.user .message-meta {
+  justify-content: flex-end;
+}
+
+.message.ai .message-meta {
+  justify-content: flex-start;
+}
+
+.message-time {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.msg-copy-btn {
+  background: none;
+  border: none;
+  padding: 3px 4px;
+  cursor: pointer;
+  color: var(--text-muted);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.2s, color 0.2s;
+  line-height: 0;
+}
+
+.message:hover .msg-copy-btn {
+  opacity: 1;
+}
+
+.msg-copy-btn:hover {
+  color: #10b981;
 }
 
 @keyframes messageSlideIn {

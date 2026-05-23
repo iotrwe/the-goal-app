@@ -869,21 +869,46 @@ function appendChatMessage(role, content) {
   const msgEl = document.createElement('div');
   msgEl.className = `message ${role}`;
   
-  let cleanContent = content;
-  if (content.includes('```json')) {
-    cleanContent = content.split('```json')[0].trim();
+  // Strip internal thinking/reasoning tags that kimi-k2p6 sometimes exposes
+  let cleanContent = content
+    .replace(/<think>[\s\S]*?<\/think>/gi, '')
+    .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
+    .trim();
+  
+  if (cleanContent.includes('```json')) {
+    cleanContent = cleanContent.split('```json')[0].trim();
   }
 
   const now = new Date();
   const timeStr = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
 
+  // Unique id for copy target
+  const msgId = `msg-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+
   msgEl.innerHTML = `
-    <div class="message-bubble">${markdownToHTML(cleanContent)}</div>
-    <span class="message-time">${timeStr}</span>
+    <div class="message-bubble" id="${msgId}">${markdownToHTML(cleanContent)}</div>
+    <div class="message-meta">
+      <button class="msg-copy-btn" title="نسخ" onclick="copyMsgText('${msgId}', this)">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+      </button>
+      <span class="message-time">${timeStr}</span>
+    </div>
   `;
 
   chatMessages.appendChild(msgEl);
   chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function copyMsgText(msgId, btn) {
+  const bubble = document.getElementById(msgId);
+  if (!bubble) return;
+  const text = bubble.innerText || bubble.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+    setTimeout(() => {
+      btn.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+    }, 2000);
+  });
 }
 
 let typingIndicator = null;
@@ -979,11 +1004,12 @@ async function callDeepSeekAI(userMessageText) {
   // Injecting goals context dynamically so Kimi acts as a personalized coach!
   systemPromptObj.content = `${originalSystemPrompt}
 
-🚨 معلومات اليوم الحالي والغد لتوجيه التخطيط:
+🚨 معلومات الوقت والتخطيط:
 - اليوم الحالي هو: ${todayArabicName}
-- اليوم الذي نخطط له (الغد) هو: ${tomorrowArabicName}
+- الغد هو: ${tomorrowArabicName}
+- **مهم جداً:** المستخدم قد يطلب التخطيط لليوم الحالي (${todayArabicName}) أو الغد (${tomorrowArabicName}) أو أي يوم آخر يذكره. افهم قصده بوضوح من السياق ولا تفرض عليه تخطيط الغد فقط. إذا قال "النهارده" أو "اليوم" فهو يقصد ${todayArabicName}. إذا قال "بكرة" أو "الغد" فهو يقصد ${tomorrowArabicName}. تصرف بمرونة تامة.
 
-🚨 سياق أهداف المستخدم الكبرى الحالية (يجب أن تطلع عليها وتأخذها بعين الاعتبار لتحفيز المستخدم وربط خطته اليومية برؤيته الكبرى):
+🚨 سياق أهداف المستخدم الكبرى الحالية:
 - هدف الأفق الطويل (رؤية السنة والنصف): "${yearlyGoal}"
 - هدف الشهر الحالي: "${monthlyGoal}"
 - هدف الأسبوع الحالي: "${currentWeeklyGoal}"
@@ -992,12 +1018,12 @@ async function callDeepSeekAI(userMessageText) {
 
 ${currentWeekKey !== tomorrowWeekKey ? `⚠️ ملاحظة: غداً يبدأ أسبوع جديد! هدف الأسبوع القادم هو: "${tomorrowWeeklyGoal}"\n` : ''}
 
-🚨 أداء ومهام اليوم الحالي (${todayArabicName}) للمراجعة والتقييم:
+🚨 أداء ومهام اليوم الحالي (${todayArabicName}) للمراجعة:
 - نسبة إنجاز اليوم الإجمالية: ${todayProgress}%
 - قائمة مهام اليوم:
 ${todayTasksSummary}
 
-استغل هذا السياق الغني بدقة ولطف وثقة وذكاء، لتمدح إنجازات اليوم (سواء المكتملة أو الجزئية بنسبتها المحددة) وتربط مهام الغد بأهداف الأسبوع والشهر والسنة والنصف وحصالة الزواج، وحث المستخدم بلطف ليكون غداً خطوة جديدة نحو رؤيته الكبرى!`;
+استغل هذا السياق بدقة ولطف وثقة وذكاء. ربط مهام اليوم بأهداف الأسبوع والشهر والسنة وحصالة الزواج. لا تفكر بصوت عالٍ أمام المستخدم — اعطِه ردوداً نظيفة ومباشرة فقط.`;
 
   const apiKey = "fw_MWKEEFscc36msc6AqmFgNk";
   const model = "accounts/fireworks/models/kimi-k2p6"; // Fully aligned with Kimi-k2p6!
@@ -1013,7 +1039,8 @@ ${todayTasksSummary}
         model: model,
         messages: chatHistory,
         temperature: 0.7,
-        max_tokens: 1500
+        max_tokens: 1200,
+        thinking_budget_tokens: 0  // Disable extended thinking to save tokens
       })
     });
 
@@ -1022,7 +1049,13 @@ ${todayTasksSummary}
     }
 
     const resData = await response.json();
-    const reply = resData.choices[0].message.content;
+    let reply = resData.choices[0].message.content;
+    
+    // Strip any exposed thinking/reasoning blocks (kimi-k2p6 may leak these)
+    reply = reply
+      .replace(/<think>[\s\S]*?<\/think>/gi, '')
+      .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
+      .trim();
     
     hideTypingIndicator();
     appendChatMessage('ai', reply);
