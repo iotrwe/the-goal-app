@@ -61,7 +61,7 @@ function getInitialData() {
     settings: {
       apiKey: "fw_MWKEEFscc36msc6AqmFgNk",
       apiModel: "accounts/fireworks/models/kimi-k2p6", // Setup with Kimi-k2p6
-      appPin: "1234", // Default 4-digit PIN
+      appPin: "157359", // Default 6-digit PIN
       marriageGoal: { target: 180000, current: 0 },
       yearlyGoals: "",
       monthlyGoals: "",
@@ -81,8 +81,8 @@ if (!STATE) {
   // CRITICAL UNCONDITIONAL RESET to force Kimi-k2p6 & correct key
   STATE.settings.apiModel = "accounts/fireworks/models/kimi-k2p6";
   STATE.settings.apiKey = "fw_MWKEEFscc36msc6AqmFgNk";
-  if (!STATE.settings.appPin) {
-    STATE.settings.appPin = "1234";
+  if (!STATE.settings.appPin || STATE.settings.appPin === "1234") {
+    STATE.settings.appPin = "157359";
   }
   if (!STATE.settings.github) {
     STATE.settings.github = { username: "", repo: "", token: "", lastSynced: "" };
@@ -1917,12 +1917,12 @@ function initLockscreen() {
   const keys = lockscreenOverlay.querySelectorAll('.keypad-btn[data-val]');
   keys.forEach(key => {
     key.addEventListener('click', () => {
-      if (enteredPin.length < 4) {
+      if (enteredPin.length < 6) {
         enteredPin += key.dataset.val;
         updatePinDots();
         
-        // Auto-check if it hits 4 digits
-        if (enteredPin.length === 4) {
+        // Auto-check if it hits 6 digits
+        if (enteredPin.length === 6) {
           setTimeout(verifyPIN, 200);
         }
       }
@@ -1955,7 +1955,7 @@ function updatePinDots() {
 }
 
 function verifyPIN() {
-  const correctPin = STATE.settings.appPin || "1234";
+  const correctPin = STATE.settings.appPin || "157359";
   if (enteredPin === correctPin) {
     localStorage.setItem('the_goal_authenticated', 'true');
     lockscreenOverlay.classList.add('fade-out');
