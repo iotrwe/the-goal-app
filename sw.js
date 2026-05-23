@@ -2,7 +2,7 @@
    The Goal - PWA Service Worker for Offline access
 -------------------------------------------------- */
 
-const CACHE_NAME = 'the-goal-v2';
+const CACHE_NAME = 'the-goal-v3';
 const ASSETS_TO_CACHE = [
   'index.html',
   'style.css',

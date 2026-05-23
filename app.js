@@ -287,9 +287,16 @@ function renderDayView() {
 
   const pct = getDayProgress(dateStr);
   
+  // Update the new horizontal progress bar
+  const progressBar = document.getElementById('daily-progress-bar');
+  if (progressBar) progressBar.style.width = `${pct}%`;
+  
+  // Keep SVG circle update for backward compat (it's hidden but JS still runs)
   const circle = document.getElementById('daily-progress-circle');
-  const offset = 201 - (pct / 100) * 201;
-  circle.style.strokeDashoffset = offset;
+  if (circle) {
+    const offset = 201 - (pct / 100) * 201;
+    circle.style.strokeDashoffset = offset;
+  }
   
   document.getElementById('progress-ring-value').textContent = `${pct}%`;
   document.getElementById('progress-percentage-text').textContent = `${pct}% مكتمل`;

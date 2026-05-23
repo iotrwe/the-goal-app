@@ -36,7 +36,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="style.css?v=2.0">
+  <link rel="stylesheet" href="style.css?v=3.0">
 </head>
 <body>
 
@@ -171,26 +171,31 @@
         <!-- Main Daily Content -->
         <div class="day-scroll-container">
           
-          <!-- Daily Progress Ring/Card -->
+          <!-- Daily Progress Compact Bar -->
           <div class="progress-card">
-            <div class="progress-details">
-              <h3>معدل إنجاز اليوم</h3>
-              <p id="progress-percentage-text">0% مكتمل</p>
+            <div class="progress-details" style="flex:1;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <h3>معدل إنجاز اليوم</h3>
+                <div class="progress-ring-value" id="progress-ring-value" style="position:static; font-size:1.2rem;">0%</div>
+              </div>
+              <!-- Progress bar instead of SVG ring -->
+              <div style="width:100%; height:8px; border-radius:30px; background:rgba(255,255,255,0.05); overflow:hidden;">
+                <div id="daily-progress-bar" style="height:100%; border-radius:30px; background:linear-gradient(90deg,#10b981,#059669); width:0%; transition:width 0.6s cubic-bezier(0.16,1,0.3,1); box-shadow:0 0 10px rgba(16,185,129,0.3);"></div>
+              </div>
+              <p id="progress-percentage-text" style="margin-top:6px; font-size:0.78rem;">0% مكتمل</p>
             </div>
-            <div class="progress-ring-wrapper">
-              <svg class="progress-ring" width="80" height="80">
-                <circle class="progress-ring-circle-bg" stroke="rgba(255,255,255,0.05)" stroke-width="6" fill="transparent" r="32" cx="40" cy="40"></circle>
-                <circle id="daily-progress-circle" class="progress-ring-circle" stroke="url(#emeraldGradient)" stroke-width="6" fill="transparent" r="32" cx="40" cy="40"></circle>
-                <defs>
-                  <linearGradient id="emeraldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#10b981" />
-                    <stop offset="100%" stop-color="#059669" />
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div class="progress-ring-value" id="progress-ring-value">0%</div>
-            </div>
+            <!-- Hidden SVG ring kept for JS compatibility -->
+            <svg style="display:none;">
+              <defs>
+                <linearGradient id="emeraldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#10b981" />
+                  <stop offset="100%" stop-color="#059669" />
+                </linearGradient>
+              </defs>
+              <circle id="daily-progress-circle" class="progress-ring-circle" stroke="url(#emeraldGradient)" stroke-width="6" fill="transparent" r="32" cx="40" cy="40"></circle>
+            </svg>
           </div>
+
 
           <!-- Active Goals Section -->
           <div class="goals-section">
@@ -700,6 +705,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=2.0"></script>
+  <script src="app.js?v=3.0"></script>
 </body>
 </html>
