@@ -59,20 +59,13 @@ body {
   left: 0;
 }
 
-/* Custom Scrollbars for mobile & desktop */
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+/* Hide scrollbars globally while keeping scroll function */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
 }
-::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .hidden {
@@ -266,11 +259,10 @@ main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: rgba(12, 12, 20, 0.4);
+  background: transparent;
   border-radius: 24px;
-  border: var(--border-light);
+  border: none;
   overflow: hidden;
-  backdrop-filter: blur(10px);
   position: relative;
 }
 
@@ -371,12 +363,14 @@ main {
 /* Chat Input Bar */
 .chat-input-area {
   padding: 12px;
-  background: rgba(15, 15, 25, 0.9);
+  background: rgba(15, 15, 25, 0.65);
   border-top: var(--border-light);
   display: flex;
   align-items: flex-end;
   gap: 8px;
   flex-shrink: 0;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .chat-input-area textarea {
