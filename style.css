@@ -554,6 +554,8 @@ main {
   box-shadow: 0 0 20px rgba(16, 185, 129, 0.06), inset 0 1px 0 rgba(16, 185, 129, 0.08);
   position: relative;
   overflow: hidden;
+  flex-shrink: 0; /* Prevent vertical squashing in flex layouts */
+  min-height: 80px; /* Guarantee beautiful premium size */
 }
 
 .progress-card::before {
