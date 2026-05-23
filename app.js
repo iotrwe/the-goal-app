@@ -1039,7 +1039,7 @@ ${todayTasksSummary}
         model: model,
         messages: chatHistory,
         temperature: 0.7,
-        max_tokens: 1200,
+        max_tokens: 3000,
         thinking_budget_tokens: 0  // Disable extended thinking to save tokens
       })
     });
