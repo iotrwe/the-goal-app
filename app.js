@@ -653,17 +653,18 @@ const sendChatBtn = document.getElementById('send-chat-btn');
 
 let chatHistory = [];
 
-const SYSTEM_PROMPT_TEMPLATE = `أنت "مخطط الغد"، مساعد ذكاء اصطناعي خبير ومقرب. مهمتك هي مساعدة المستخدم في التخطيط لليوم التالي بطريقة مرنة وملهمة ودون ضغوط.
+const SYSTEM_PROMPT_TEMPLATE = `أنت "مخطط الغد"، مساعد ذكاء اصطناعي خبير ومقرب. مهمتك هي مساعدة المستخدم في التخطيط لليوم التالي أو اليوم الحالي بطريقة مرنة وملهمة ودون ضغوط.
 - تحدث باللغة العربية بأسلوب ودود ومحفز وبسيط جداً.
-- ناقش المستخدم في مهامه غداً واقترح عليه توزيعاً زمنياً منطقياً.
-- عندما يطلب المستخدم إنهاء التخطيط أو صياغة خطة الغد، أو عندما تنتهي المحادثة وتتفقان على المهام، يجب عليك صياغة الخطة النهائية كقائمة مهام منظمة.
-- لمساعدتك على إرسال الخطة للتطبيق تلقائياً، قم بصياغة ردك بحيث يحتوي في نهايته على كود JSON واضح محاط بـ \`\`\`json \`\`\` ويحتوي على مصفوفة المهام بالصيغة التالية تماماً:
+- ناقش المستخدم في مهامه واقترح عليه توزيعاً زمنياً منطقياً.
+- عندما يطلب المستخدم إنهاء التخطيط وصياغة خطته، أو عندما تنتهي المحادثة وتتفقان على المهام، يجب عليك صياغة الخطة النهائية كقائمة مهام منظمة.
+- لمساعدتك على إرسال الخطة للتطبيق تلقائياً، قم بصياغة ردك بحيث يحتوي في نهايته على كود JSON واضح محاط بـ \`\`\`json \`\`\` ويحتوي على معامل target_day ومصفوفة المهام بالصيغة التالية تماماً:
 {
+  "target_day": "today", // أو "tomorrow" حسب اليوم الذي تم التخطيط له في المحادثة
   "tasks": [
     { "text": "اسم المهمة باللغة العربية", "time": "الوقت المقترح (مثال: 08:30 مساءً أو اختياري)" }
   ]
 }
-ملاحظة: لا تضع أي أهداف أسبوعية أو شهرية. خطة لليوم التالي فقط.`;
+ملاحظة: لا تضع أي أهداف أسبوعية أو شهرية. خطة لليوم التالي أو اليوم الحالي فقط.`;
 
 function initChatPage() {
   chatMessages.innerHTML = '';
@@ -989,17 +990,18 @@ async function callDeepSeekAI(userMessageText) {
 
   // Prepend or inject context instructions into the system instruction or request
   const systemPromptObj = chatHistory[0];
-  const originalSystemPrompt = `أنت "مخطط الغد"، مساعد ذكاء اصطناعي خبير ومقرب. مهمتك هي مساعدة المستخدم في التخطيط لليوم التالي بطريقة مرنة وملهمة ودون ضغوط.
+  const originalSystemPrompt = `أنت "مخطط الغد"، مساعد ذكاء اصطناعي خبير ومقرب. مهمتك هي مساعدة المستخدم في التخطيط لليوم التالي أو اليوم الحالي بطريقة مرنة وملهمة ودون ضغوط.
 - تحدث باللغة العربية بأسلوب ودود ومحفز وبسيط جداً.
-- ناقش المستخدم في مهامه غداً واقترح عليه توزيعاً زمنياً منطقياً.
-- عندما يطلب المستخدم إنهاء التخطيط أو صياغة خطة الغد، أو عندما تنتهي المحادثة وتتفقان على المهام، يجب عليك صياغة الخطة النهائية كقائمة مهام منظمة.
-- لمساعدتك على إرسال الخطة للتطبيق تلقائياً، قم بصياغة ردك بحيث يحتوي في نهايته على كود JSON واضح محاط بـ \`\`\`json \`\`\` ويحتوي على مصفوفة المهام بالصيغة التالية تماماً:
+- ناقش المستخدم في مهامه واقترح عليه توزيعاً زمنياً منطقياً.
+- عندما يطلب المستخدم إنهاء التخطيط وصياغة خطته، أو عندما تنتهي المحادثة وتتفقان على المهام، يجب عليك صياغة الخطة النهائية كقائمة مهام منظمة.
+- لمساعدتك على إرسال الخطة للتطبيق تلقائياً، قم بصياغة ردك بحيث يحتوي في نهايته على كود JSON واضح محاط بـ \`\`\`json \`\`\` ويحتوي على معامل target_day ومصفوفة المهام بالصيغة التالية تماماً:
 {
+  "target_day": "today", // أو "tomorrow" حسب اليوم الذي تم التخطيط له في المحادثة
   "tasks": [
     { "text": "اسم المهمة باللغة العربية", "time": "الوقت المقترح (مثال: 08:30 مساءً أو اختياري)" }
   ]
 }
-ملاحظة: لا تضع أي أهداف أسبوعية أو شهرية. خطة لليوم التالي فقط.`;
+ملاحظة: لا تضع أي أهداف أسبوعية أو شهرية. خطة لليوم التالي أو اليوم الحالي فقط.`;
 
   // Injecting goals context dynamically so Kimi acts as a personalized coach!
   systemPromptObj.content = `${originalSystemPrompt}
@@ -1103,6 +1105,7 @@ chatInput.addEventListener('keydown', (e) => {
 
 // --- EXTRACTION OF THE JSON PLAN & PROPOSAL MODAL ---
 let proposedTasksList = [];
+let proposedTargetDate = 'tomorrow'; // Can be 'today' or 'tomorrow'
 
 function extractAndProcessJSONPlan(aiText) {
   try {
@@ -1120,6 +1123,13 @@ function extractAndProcessJSONPlan(aiText) {
         status: 'pending'
       }));
       
+      // Determine if planning is for today or tomorrow
+      if (data.target_day === 'today') {
+        proposedTargetDate = 'today';
+      } else {
+        proposedTargetDate = 'tomorrow';
+      }
+      
       openPlanProposalModal();
     }
   } catch (e) {
@@ -1135,6 +1145,16 @@ function openPlanProposalModal() {
   proposedTasksList.forEach(task => {
     renderProposedTaskRow(task);
   });
+
+  // Dynamically update modal headers and buttons based on target date
+  const modalHeader = document.querySelector('#plan-proposal-modal h3');
+  if (modalHeader) {
+    modalHeader.textContent = proposedTargetDate === 'today' ? 'مسودة خطة اليوم المقترحة' : 'مسودة خطة الغد المقترحة';
+  }
+  const approveBtn = document.getElementById('modal-approve-btn');
+  if (approveBtn) {
+    approveBtn.textContent = proposedTargetDate === 'today' ? 'اعتماد خطة اليوم ونقلها لصفحة يومي' : 'اعتماد خطة الغد ونقلها لصفحة يومي';
+  }
 
   openModal(planModal);
 }
@@ -1197,19 +1217,23 @@ document.getElementById('modal-approve-btn').addEventListener('click', () => {
     return;
   }
 
-  const tomorrow = new Date(today.getTime() + 86400000);
-  const tomorrowStr = formatDateString(tomorrow);
+  const targetDate = proposedTargetDate === 'today' ? today : new Date(today.getTime() + 86400000);
+  const targetDateStr = formatDateString(targetDate);
 
-  STATE.days[tomorrowStr] = {
+  STATE.days[targetDateStr] = {
     tasks: proposedTasksList,
-    note: "تم التخطيط عبر محادثة المساء الذكية"
+    note: proposedTargetDate === 'today' ? "تم التخطيط لليوم عبر محادثة المساء الذكية" : "تم التخطيط للغد عبر محادثة المساء الذكية"
   };
 
   saveState();
   closeModal(planModal);
 
-  alert("تمت الموافقة على الخطة بنجاح ونقلها لصفحة يومي لغدٍ!");
-  selectedDate = tomorrow;
+  if (proposedTargetDate === 'today') {
+    alert("تمت الموافقة على الخطة بنجاح ونقلها لصفحة يومي لليوم!");
+  } else {
+    alert("تمت الموافقة على الخطة بنجاح ونقلها لصفحة يومي لغدٍ!");
+  }
+  selectedDate = targetDate;
   renderDayView();
   navigateToPage('page-day');
   localStorage.removeItem('the_goal_chat_history'); // Clear chat memory upon plan finalization
