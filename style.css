@@ -1647,6 +1647,7 @@ main {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  width: 100%;
 }
 
 .form-group label {
@@ -1665,6 +1666,8 @@ main {
   font-size: 0.9rem;
   outline: none;
   transition: all 0.3s;
+  width: 100%;
+  min-width: 0;
 }
 
 .form-group input:focus, .form-group textarea:focus {
@@ -1675,10 +1678,40 @@ main {
 .form-row {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap; /* Prevent horizontal overlap and squishing on mobile */
+  width: 100%;
 }
 
 .form-group.half {
-  flex: 1;
+  flex: 1 1 120px; /* Stack naturally on narrow screens */
+}
+
+/* Mobile stacking for forms */
+@media (max-width: 480px) {
+  .form-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .form-group.half {
+    flex: 1 1 100%;
+  }
+}
+
+/* Clickable goals displays interactive effect */
+#yearly-goal-display, #monthly-goal-display, #weekly-goal-display {
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, border-color 0.2s;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+#yearly-goal-display:hover, #monthly-goal-display:hover, #weekly-goal-display:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+#yearly-goal-display:active, #monthly-goal-display:active, #weekly-goal-display:active {
+  transform: scale(0.98);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .modal-divider {

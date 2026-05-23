@@ -521,6 +521,27 @@ function renderWeeklyGoalTab() {
     enjoyed: null
   };
 
+  // 1. Render Yearly Goal Display
+  const yearlyDisplay = document.getElementById('yearly-goal-display');
+  if (STATE.settings.yearlyGoals) {
+    yearlyDisplay.textContent = STATE.settings.yearlyGoals;
+    yearlyDisplay.classList.remove('empty-placeholder');
+  } else {
+    yearlyDisplay.textContent = 'لم يتم تحديد رؤية المدى الطويل بعد. اضغط تعديل للكتابة.';
+    yearlyDisplay.classList.add('empty-placeholder');
+  }
+
+  // 2. Render Monthly Goal Display
+  const monthlyDisplay = document.getElementById('monthly-goal-display');
+  if (STATE.settings.monthlyGoals) {
+    monthlyDisplay.textContent = STATE.settings.monthlyGoals;
+    monthlyDisplay.classList.remove('empty-placeholder');
+  } else {
+    monthlyDisplay.textContent = 'لم يتم تحديد هدف الشهر بعد. اضغط تعديل للكتابة.';
+    monthlyDisplay.classList.add('empty-placeholder');
+  }
+
+  // 3. Render Weekly Goal Display
   const display = document.getElementById('weekly-goal-display');
   if (weekData.weeklyGoal) {
     display.textContent = weekData.weeklyGoal;
@@ -1613,14 +1634,17 @@ document.getElementById('day-task-save-btn').addEventListener('click', () => {
 });
 
 const weeklyGoalModal = document.getElementById('weekly-goal-modal');
-document.getElementById('edit-weekly-goal-btn').addEventListener('click', () => {
+const openWeeklyModalFunc = () => {
   const weekKey = getWeekKey(selectedDate);
   const wData = STATE.weeks[weekKey] || { weeklyGoal: "", gymTarget: 3, gymCompleted: 0, enjoyed: null };
   
   document.getElementById('weekly-goal-input').value = wData.weeklyGoal;
   document.getElementById('weekly-gym-input').value = wData.gymTarget;
   openModal(weeklyGoalModal);
-});
+};
+
+document.getElementById('edit-weekly-goal-btn').addEventListener('click', openWeeklyModalFunc);
+document.getElementById('weekly-goal-display').addEventListener('click', openWeeklyModalFunc);
 
 document.getElementById('close-weekly-goal-modal-btn').addEventListener('click', () => closeModal(weeklyGoalModal));
 document.getElementById('weekly-goal-cancel-btn').addEventListener('click', () => closeModal(weeklyGoalModal));
@@ -1637,6 +1661,45 @@ document.getElementById('weekly-goal-save-btn').addEventListener('click', () => 
 
   saveState();
   closeModal(weeklyGoalModal);
+  renderDayView();
+});
+
+// --- QUICK MONTHLY AND YEARLY GOALS MODAL HOOKS ---
+const monthlyGoalModal = document.getElementById('monthly-goal-modal');
+const openMonthlyModalFunc = () => {
+  document.getElementById('monthly-goal-input').value = STATE.settings.monthlyGoals || "";
+  openModal(monthlyGoalModal);
+};
+
+document.getElementById('edit-monthly-goal-btn').addEventListener('click', openMonthlyModalFunc);
+document.getElementById('monthly-goal-display').addEventListener('click', openMonthlyModalFunc);
+
+document.getElementById('close-monthly-goal-modal-btn').addEventListener('click', () => closeModal(monthlyGoalModal));
+document.getElementById('monthly-goal-cancel-btn').addEventListener('click', () => closeModal(monthlyGoalModal));
+
+document.getElementById('monthly-goal-save-btn').addEventListener('click', () => {
+  STATE.settings.monthlyGoals = document.getElementById('monthly-goal-input').value.trim();
+  saveState();
+  closeModal(monthlyGoalModal);
+  renderDayView();
+});
+
+const yearlyGoalModal = document.getElementById('yearly-goal-modal');
+const openYearlyModalFunc = () => {
+  document.getElementById('yearly-goal-input').value = STATE.settings.yearlyGoals || "";
+  openModal(yearlyGoalModal);
+};
+
+document.getElementById('edit-yearly-goal-btn').addEventListener('click', openYearlyModalFunc);
+document.getElementById('yearly-goal-display').addEventListener('click', openYearlyModalFunc);
+
+document.getElementById('close-yearly-goal-modal-btn').addEventListener('click', () => closeModal(yearlyGoalModal));
+document.getElementById('yearly-goal-cancel-btn').addEventListener('click', () => closeModal(yearlyGoalModal));
+
+document.getElementById('yearly-goal-save-btn').addEventListener('click', () => {
+  STATE.settings.yearlyGoals = document.getElementById('yearly-goal-input').value.trim();
+  saveState();
+  closeModal(yearlyGoalModal);
   renderDayView();
 });
 
