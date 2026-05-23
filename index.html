@@ -13,19 +13,35 @@
   
   <!-- Cache Buster & Service Worker Unregister for Development/Instant Refresh -->
   <script>
+    let needsReload = false;
+    
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for(let registration of registrations) {
-          registration.unregister();
-          console.log('Service Worker Unregistered successfully.');
+        if (registrations.length > 0) {
+          for(let registration of registrations) {
+            registration.unregister();
+          }
+          console.log('Active Service Workers unregistered.');
+          needsReload = true;
         }
       });
     }
+    
     if ('caches' in window) {
       caches.keys().then(function(names) {
-        for (let name of names) {
-          caches.delete(name);
-          console.log('Cache cleared:', name);
+        if (names.length > 0) {
+          names.forEach(function(name) {
+            caches.delete(name);
+          });
+          console.log('All browser caches cleared.');
+          needsReload = true;
+        }
+      }).finally(function() {
+        if (needsReload) {
+          console.log('Forcing page reload to fetch fresh assets...');
+          setTimeout(function() {
+            window.location.reload();
+          }, 300);
         }
       });
     }
