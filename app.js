@@ -1883,6 +1883,30 @@ async function pullStateFromGitHub(manualTrigger = false) {
       const payload = JSON.parse(decodedContent);
 
       if (payload && payload.state) {
+        // Safety check: Don't silently overwrite a populated local state with an empty cloud state!
+        const localHasData = (STATE.settings && STATE.settings.yearlyGoals && STATE.settings.yearlyGoals.trim() !== '') || 
+                             (STATE.settings && STATE.settings.monthlyGoals && STATE.settings.monthlyGoals.trim() !== '') ||
+                             (STATE.days && Object.keys(STATE.days).length > 0);
+                             
+        const cloudHasData = (payload.state.settings && payload.state.settings.yearlyGoals && payload.state.settings.yearlyGoals.trim() !== '') || 
+                             (payload.state.settings && payload.state.settings.monthlyGoals && payload.state.settings.monthlyGoals.trim() !== '') ||
+                             (payload.state.days && Object.keys(payload.state.days).length > 0);
+
+        if (localHasData && !cloudHasData) {
+          console.warn("تنبيه: محاولة مزامنة بيانات سحابية فارغة فوق بيانات محلية ممتلئة. تم إلغاء الكتابة التلقائية لحماية بياناتك.");
+          if (manualTrigger) {
+            if (!confirm("البيانات على جيت هب فارغة بينما لديك بيانات محلية ممتلئة. هل تريد فعلاً استبدال بياناتك المحلية بالبيانات السحابية الفارغة؟")) {
+              updateSyncStatusIndicator(true);
+              return;
+            }
+          } else {
+            // Push local populated state to GitHub instead to keep cloud updated!
+            console.log("تحديث السحابة تلقائيًا بالبيانات المحلية المأهولة...");
+            pushStateToGitHub();
+            return;
+          }
+        }
+
         // Save imported state and chat history safely
         STATE = payload.state;
         saveStateLocallyOnly();
