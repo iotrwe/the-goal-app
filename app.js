@@ -96,7 +96,8 @@ if (!STATE) {
 }
 
 // Save State Helpers
-function saveStateLocallyOnly() {
+function saveStateLocallyOnly(skipTimestamp = false) {
+  if (!skipTimestamp) STATE.lastUpdated = new Date().getTime();
   localStorage.setItem(DB_KEY, JSON.stringify(STATE));
 }
 function saveState() {
@@ -1917,6 +1918,20 @@ async function pullStateFromGitHub(manualTrigger = false) {
             pushStateToGitHub();
             return;
           }
+        }
+
+        const cloudLastUpdated = payload.state.lastUpdated || 0;
+        const localLastUpdated = STATE.lastUpdated || 0;
+        
+        // Prevent older cloud data from overwriting newer local data (Conflict Resolution)
+        if (localLastUpdated > cloudLastUpdated) {
+          console.log("البيانات المحلية أحدث من السحابية. تخطي التحديث السحابي ودفع البيانات المحلية للسحابة بدلاً من ذلك...");
+          if (!manualTrigger) {
+            pushStateToGitHub();
+          } else {
+            alert("بياناتك المحلية أحدث بالفعل من البيانات الموجودة على جيت هب.");
+          }
+          return;
         }
 
         // Save imported state and chat history safely
