@@ -1357,10 +1357,10 @@ function renderAnalysisView() {
 
       const ul = accordion.querySelector('.summary-tasks-ul');
       
-      if (compTasks.length === 0) {
+      if (completedTasks.length === 0) {
         ul.innerHTML = '<li class="no-tasks">لا توجد مهام منجزة مسجلة في هذا الأسبوع.</li>';
       } else {
-        compTasks.forEach(tText => {
+        completedTasks.forEach(tText => {
           const li = document.createElement('li');
           li.innerHTML = `<span style="color:#10b981; display:inline-flex; align-items:center; transform:translateY(1.5px); margin-left:6px;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></span> ${tText}`;
           ul.appendChild(li);
