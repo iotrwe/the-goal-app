@@ -1813,9 +1813,14 @@ async function pushStateToGitHub() {
       sha = getJson.sha;
     }
 
-    // Prepare payload
+    // Prepare payload without secrets to bypass GitHub Push Protection
+    const safeState = JSON.parse(JSON.stringify(STATE));
+    if (safeState.settings && safeState.settings.github) {
+      safeState.settings.github.token = ""; // Strip token!
+    }
+
     const payload = {
-      state: STATE,
+      state: safeState,
       chatHistory: localStorage.getItem('the_goal_chat_history'),
       updatedAt: new Date().toISOString()
     };
