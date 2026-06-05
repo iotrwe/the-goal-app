@@ -178,7 +178,7 @@ function closeModal(modal) {
 
 // Calculates weighted daily score (completed adds 1.0, partial adds percentage/100)
 function getDayProgress(dateStr) {
-  const dayData = STATE.days[dateStr];
+  const dayData = STATE.days ? STATE.days[dateStr] : undefined;
   if (!dayData || !dayData.tasks || dayData.tasks.length === 0) return 0;
   
   let score = 0;
@@ -190,6 +190,8 @@ function getDayProgress(dateStr) {
 }
 
 function renderDayView() {
+  if (!STATE.days) STATE.days = {};
+  if (!STATE.weeks) STATE.weeks = {};
   const dateStr = formatDateString(selectedDate);
   const dayData = STATE.days[dateStr] || { tasks: [], note: "" };
 
@@ -1919,6 +1921,10 @@ async function pullStateFromGitHub(manualTrigger = false) {
 
         // Save imported state and chat history safely
         STATE = payload.state;
+        if (!STATE.days) STATE.days = {};
+        if (!STATE.weeks) STATE.weeks = {};
+        if (!STATE.settings) STATE.settings = getInitialData().settings;
+        
         saveStateLocallyOnly();
         
         if (payload.chatHistory) {
