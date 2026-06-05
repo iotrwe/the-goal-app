@@ -1923,7 +1923,11 @@ async function pullStateFromGitHub(manualTrigger = false) {
         STATE = payload.state;
         if (!STATE.days) STATE.days = {};
         if (!STATE.weeks) STATE.weeks = {};
-        if (!STATE.settings) STATE.settings = getInitialData().settings;
+        
+        // Deep merge for settings to guarantee properties like marriageGoal
+        const defaultSettings = getInitialData().settings;
+        STATE.settings = Object.assign({}, defaultSettings, STATE.settings || {});
+        if (!STATE.settings.marriageGoal) STATE.settings.marriageGoal = defaultSettings.marriageGoal;
         
         saveStateLocallyOnly();
         
