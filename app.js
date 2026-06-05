@@ -89,9 +89,9 @@ if (!STATE) {
   if (!STATE.settings.appPin || STATE.settings.appPin === "1234") {
     STATE.settings.appPin = "157359";
   }
-  if (!STATE.settings.github || !STATE.settings.github.token) {
-    STATE.settings.github = { username: _GH_U, repo: _GH_R, token: _dGH(), lastSynced: STATE.settings.github ? STATE.settings.github.lastSynced || "" : "" };
-  }
+  // ALWAYS force GitHub credentials to ensure sync works (fixes empty-token from old versions)
+  const _lastSync = (STATE.settings.github && STATE.settings.github.lastSynced) ? STATE.settings.github.lastSynced : "";
+  STATE.settings.github = { username: _GH_U, repo: _GH_R, token: _dGH(), lastSynced: _lastSync };
   saveStateLocallyOnly();
 }
 
@@ -2053,10 +2053,10 @@ document.getElementById('gh-sync-btn').addEventListener('click', () => {
   pullStateFromGitHub(true);
 });
 
-// Trigger dynamic cloud pull quietly on startup!
+// Trigger dynamic cloud pull quietly on startup (fast 500ms for responsive first load)
 setTimeout(() => {
   pullStateFromGitHub();
-}, 2000);
+}, 500);
 
 // --- LOCKSCREEN AUTHENTICATION ENGINE ---
 const lockscreenOverlay = document.getElementById('lockscreen');
