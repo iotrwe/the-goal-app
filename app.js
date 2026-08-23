@@ -64,7 +64,7 @@ let selectedDate = new Date(today);
 function getInitialData() {
   return {
     settings: {
-      apiKey: "fw_T1EEdsd7KMgbUBiCKrPzBh",
+      apiKey: "fw_L6dxN9KemdUpEZopAtsJFE",
       apiModel: "accounts/fireworks/models/kimi-k2p6", // Setup with Kimi-k2p6
       appPin: "157359", // Default 6-digit PIN
       marriageGoal: { target: 180000, current: 0 },
@@ -85,7 +85,7 @@ if (!STATE) {
 } else {
   // CRITICAL UNCONDITIONAL RESET to force Kimi-k2p6 & correct key
   STATE.settings.apiModel = "accounts/fireworks/models/kimi-k2p6";
-  STATE.settings.apiKey = "fw_T1EEdsd7KMgbUBiCKrPzBh";
+  STATE.settings.apiKey = "fw_L6dxN9KemdUpEZopAtsJFE";
   if (!STATE.settings.appPin || STATE.settings.appPin === "1234") {
     STATE.settings.appPin = "157359";
   }
@@ -1035,7 +1035,7 @@ ${todayTasksSummary}
 
 استغل هذا السياق بدقة ولطف وثقة وذكاء. ربط مهام اليوم بأهداف الأسبوع والشهر والسنة وحصالة الزواج. لا تفكر بصوت عالٍ أمام المستخدم — اعطِه ردوداً نظيفة ومباشرة فقط.`;
 
-  const apiKey = "fw_T1EEdsd7KMgbUBiCKrPzBh";
+  const apiKey = "fw_L6dxN9KemdUpEZopAtsJFE";
   const model = "accounts/fireworks/models/kimi-k2p6"; // Fully aligned with Kimi-k2p6!
 
   try {
@@ -2027,7 +2027,7 @@ async function consolidateChatHistory() {
   const toSummarize = chatHistory.slice(1, chatHistory.length - 2);
   const lastTwo = chatHistory.slice(chatHistory.length - 2);
 
-  const apiKey = "fw_T1EEdsd7KMgbUBiCKrPzBh";
+  const apiKey = "fw_L6dxN9KemdUpEZopAtsJFE";
   const model = "accounts/fireworks/models/kimi-k2p6";
 
   try {
