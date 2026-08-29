@@ -1043,48 +1043,23 @@ ${todayTasksSummary}
 استغل هذا السياق بدقة ولطف وثقة وذكاء. ربط مهام اليوم بأهداف الأسبوع والشهر والسنة وحصالة الزواج. لا تفكر بصوت عالٍ أمام المستخدم — اعطِه ردوداً نظيفة ومباشرة فقط.`;
 
   try {
-    let promptStr = "";
-    chatHistory.forEach(msg => {
-      promptStr += `${msg.role === 'user' ? 'User' : (msg.role === 'system' ? 'System' : 'Assistant')}: ${msg.content}\n\n`;
-    });
-    promptStr += "Assistant:";
-
     const headers = {
-      'Accept': "application/json",
-      'Content-Type': "application/json",
-      'oai-package-name': "com.Modderme",
-      'oai-client-type': "android",
-      'oai-device-id': uuidv4(),
-      'x-device-tier': "lower_mid"
+      'Accept': "*/*",
+      'Content-Type': "application/json"
     };
 
-    const prepRes = await fetch("https://android.chat.openai.com/backend-api/f/conversation/prepare", {
-      method: "POST",
-      headers: headers,
-      body: JSON.stringify({ action: "next", model: "gpt-4o-mini", messages: [] })
-    });
-    
-    if (!prepRes.ok) throw new Error(`خطأ في تهيئة الاتصال: ${prepRes.status}`);
-    const prepData = await prepRes.json();
-    
-    headers['Conduit-Token'] = prepData.conduit_token || "";
-    headers['x-oai-convo-session-id'] = uuidv4();
-    
     const payload = {
-      action: "next",
-      messages: [{ id: uuidv4(), author: { role: "user" }, content: { content_type: "text", parts: [promptStr] } }],
-      model: "gpt-4o-mini",
-      parent_message_id: uuidv4(),
-      stream: true
+      model: "deepseek/deepseek-v4-flash",
+      messages: chatHistory
     };
     
-    const res = await fetch("https://android.chat.openai.com/backend-api/f/conversation", {
+    const res = await fetch("https://deep-seek.ai/api/chat", {
       method: "POST",
       headers: headers,
       body: JSON.stringify(payload)
     });
     
-    if (!res.ok) throw new Error(`خطأ في جلب الرد: ${res.status}`);
+    if (!res.ok) throw new Error(`خطأ في جلب الرد من DeepSeek: ${res.status}`);
     
     const reader = res.body.getReader();
     const decoder = new TextDecoder("utf-8");
@@ -1102,8 +1077,8 @@ ${todayTasksSummary}
           if (d === '[DONE]') break;
           try {
             const json = JSON.parse(d);
-            const parts = json?.message?.content?.parts;
-            if (parts && parts[0]) reply = parts[0];
+            const contentChunk = json?.choices?.[0]?.delta?.content || "";
+            reply += contentChunk;
           } catch(e) {}
         }
       }
@@ -1130,7 +1105,7 @@ ${todayTasksSummary}
   } catch (error) {
     console.error(error);
     hideTypingIndicator();
-    appendChatMessage('ai', `عذراً يا صديقي، واجهت مشكلة في الاتصال بـ GPT-4o-Mini. قد يتطلب متصفحك تفعيل CORS. 🌐 (${error.message})`);
+    appendChatMessage('ai', `عذراً يا صديقي، واجهت مشكلة في الاتصال بـ DeepSeek. يرجى التحقق من اتصالك بالإنترنت. 🌐 (${error.message})`);
   }
 }
 
@@ -2072,38 +2047,26 @@ async function consolidateChatHistory() {
   const lastTwo = chatHistory.slice(chatHistory.length - 2);
 
   try {
-    let promptStr = `الرجاء كتابة خلاصة بالغة الإيجاز (في 3 أسطر على الأكثر) عما تم نقاشه أو الاتفاق عليه في الحوار التالي:\n\n${JSON.stringify(toSummarize)}`;
-
     const headers = {
-      'Accept': "application/json",
-      'Content-Type': "application/json",
-      'oai-package-name': "com.Modderme",
-      'oai-client-type': "android",
-      'oai-device-id': uuidv4(),
-      'x-device-tier': "lower_mid"
+      'Accept': "*/*",
+      'Content-Type': "application/json"
     };
 
-    const prepRes = await fetch("https://android.chat.openai.com/backend-api/f/conversation/prepare", {
-      method: "POST",
-      headers: headers,
-      body: JSON.stringify({ action: "next", model: "gpt-4o-mini", messages: [] })
-    });
-    
-    if (!prepRes.ok) throw new Error("Prepare summary failed");
-    const prepData = await prepRes.json();
-    
-    headers['Conduit-Token'] = prepData.conduit_token || "";
-    headers['x-oai-convo-session-id'] = uuidv4();
-    
     const payload = {
-      action: "next",
-      messages: [{ id: uuidv4(), author: { role: "user" }, content: { content_type: "text", parts: [promptStr] } }],
-      model: "gpt-4o-mini",
-      parent_message_id: uuidv4(),
-      stream: true
+      model: "deepseek/deepseek-v4-flash",
+      messages: [
+        {
+          role: 'system',
+          content: 'أنت كوتش التخطيط الذكي المحترف. مهمتك كتابة ملخص فائق الإيجاز والدقة باللغة العربية الفصحى يوضح خلاصة الاتفاق والمهام والنقاشات السابقة لمساعدتك كـ AI على إكمال النقاش لاحقاً دون فقدان السياق.'
+        },
+        {
+          role: 'user',
+          content: `الرجاء كتابة خلاصة بالغة الإيجاز (في 3 أسطر على الأكثر) عما تم نقاشه أو الاتفاق عليه في الحوار التالي:\n\n${JSON.stringify(toSummarize)}`
+        }
+      ]
     };
     
-    const summaryResponse = await fetch("https://android.chat.openai.com/backend-api/f/conversation", {
+    const summaryResponse = await fetch("https://deep-seek.ai/api/chat", {
       method: "POST",
       headers: headers,
       body: JSON.stringify(payload)
@@ -2126,8 +2089,8 @@ async function consolidateChatHistory() {
             if (d === '[DONE]') break;
             try {
               const json = JSON.parse(d);
-              const parts = json?.message?.content?.parts;
-              if (parts && parts[0]) summaryText = parts[0];
+              const contentChunk = json?.choices?.[0]?.delta?.content || "";
+              summaryText += contentChunk;
             } catch(e) {}
           }
         }
