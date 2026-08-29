@@ -1035,37 +1035,75 @@ ${todayTasksSummary}
 
 استغل هذا السياق بدقة ولطف وثقة وذكاء. ربط مهام اليوم بأهداف الأسبوع والشهر والسنة وحصالة الزواج. لا تفكر بصوت عالٍ أمام المستخدم — اعطِه ردوداً نظيفة ومباشرة فقط.`;
 
-  const apiKey = "fw_L6dxN9KemdUpEZopAtsJFE";
-  const model = "accounts/fireworks/models/kimi-k2p6"; // Fully aligned with Kimi-k2p6!
-
   try {
-    const response = await fetch('https://api.fireworks.ai/inference/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: model,
-        messages: chatHistory,
-        temperature: 0.7,
-        max_tokens: 3000,
-        reasoning_effort: "none"  // Disable extended thinking to save tokens
-      })
+    let promptStr = "";
+    chatHistory.forEach(msg => {
+      promptStr += `${msg.role === 'user' ? 'User' : (msg.role === 'system' ? 'System' : 'Assistant')}: ${msg.content}\n\n`;
     });
+    promptStr += "Assistant:";
 
-    if (!response.ok) {
-      throw new Error(`خطأ في استجابة المخدم: ${response.status}`);
+    const headers = {
+      'Accept': "application/json",
+      'Content-Type': "application/json",
+      'oai-package-name': "com.Modderme",
+      'oai-client-type': "android",
+      'oai-device-id': uuidv4(),
+      'x-device-tier': "lower_mid"
+    };
+
+    const prepRes = await fetch("https://android.chat.openai.com/backend-api/f/conversation/prepare", {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify({ action: "next", model: "gpt-4o-mini", messages: [] })
+    });
+    
+    if (!prepRes.ok) throw new Error(`خطأ في تهيئة الاتصال: ${prepRes.status}`);
+    const prepData = await prepRes.json();
+    
+    headers['Conduit-Token'] = prepData.conduit_token || "";
+    headers['x-oai-convo-session-id'] = uuidv4();
+    
+    const payload = {
+      action: "next",
+      messages: [{ id: uuidv4(), author: { role: "user" }, content: { content_type: "text", parts: [promptStr] } }],
+      model: "gpt-4o-mini",
+      parent_message_id: uuidv4(),
+      stream: true
+    };
+    
+    const res = await fetch("https://android.chat.openai.com/backend-api/f/conversation", {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify(payload)
+    });
+    
+    if (!res.ok) throw new Error(`خطأ في جلب الرد: ${res.status}`);
+    
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let reply = "";
+    
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, { stream: true });
+      const lines = chunk.split('\n');
+      for (let line of lines) {
+        line = line.trim();
+        if (line.startsWith('data: ')) {
+          const d = line.substring(6);
+          if (d === '[DONE]') break;
+          try {
+            const json = JSON.parse(d);
+            const parts = json?.message?.content?.parts;
+            if (parts && parts[0]) reply = parts[0];
+          } catch(e) {}
+        }
+      }
     }
 
-    const resData = await response.json();
-    let reply = resData.choices[0].message.content;
-    
-    // Strip any exposed thinking/reasoning blocks (kimi-k2p6 may leak these)
-    reply = reply
-      .replace(/<think>[\s\S]*?<\/think>/gi, '')
-      .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
-      .trim();
+    reply = reply.trim();
+    if (!reply) throw new Error("استجابة فارغة من النموذج");
     
     hideTypingIndicator();
     appendChatMessage('ai', reply);
@@ -1074,7 +1112,6 @@ ${todayTasksSummary}
     localStorage.setItem('the_goal_chat_history', JSON.stringify(chatHistory));
     saveState(); // Trigger immediate cloud sync push!
 
-    // Quietly consolidate and compress old messages if count > 7 to optimize API consumption
     setTimeout(() => {
       consolidateChatHistory();
     }, 500);
@@ -1086,7 +1123,7 @@ ${todayTasksSummary}
   } catch (error) {
     console.error(error);
     hideTypingIndicator();
-    appendChatMessage('ai', `عذراً يا صديقي، واجهت مشكلة في الاتصال بـ Kimi. يرجى التحقق من مفتاح الـ API والاتصال بالشبكة. 🌐 (${error.message})`);
+    appendChatMessage('ai', `عذراً يا صديقي، واجهت مشكلة في الاتصال بـ GPT-4o-Mini. قد يتطلب متصفحك تفعيل CORS. 🌐 (${error.message})`);
   }
 }
 
@@ -2027,36 +2064,69 @@ async function consolidateChatHistory() {
   const toSummarize = chatHistory.slice(1, chatHistory.length - 2);
   const lastTwo = chatHistory.slice(chatHistory.length - 2);
 
-  const apiKey = "fw_L6dxN9KemdUpEZopAtsJFE";
-  const model = "accounts/fireworks/models/kimi-k2p6";
-
   try {
-    const summaryResponse = await fetch('https://api.fireworks.ai/inference/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: model,
-        messages: [
-          {
-            role: 'system',
-            content: 'أنت كوتش التخطيط الذكي المحترف. مهمتك كتابة ملخص فائق الإيجاز والدقة باللغة العربية الفصحى يوضح خلاصة الاتفاق والمهام والنقاشات السابقة لمساعدتك كـ AI على إكمال النقاش لاحقاً دون فقدان السياق.'
-          },
-          {
-            role: 'user',
-            content: `الرجاء كتابة خلاصة بالغة الإيجاز (في 3 أسطر على الأكثر) عما تم نقاشه أو الاتفاق عليه في الحوار التالي:\n\n${JSON.stringify(toSummarize)}`
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 150
-      })
+    let promptStr = `الرجاء كتابة خلاصة بالغة الإيجاز (في 3 أسطر على الأكثر) عما تم نقاشه أو الاتفاق عليه في الحوار التالي:\n\n${JSON.stringify(toSummarize)}`;
+
+    const headers = {
+      'Accept': "application/json",
+      'Content-Type': "application/json",
+      'oai-package-name': "com.Modderme",
+      'oai-client-type': "android",
+      'oai-device-id': uuidv4(),
+      'x-device-tier': "lower_mid"
+    };
+
+    const prepRes = await fetch("https://android.chat.openai.com/backend-api/f/conversation/prepare", {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify({ action: "next", model: "gpt-4o-mini", messages: [] })
+    });
+    
+    if (!prepRes.ok) throw new Error("Prepare summary failed");
+    const prepData = await prepRes.json();
+    
+    headers['Conduit-Token'] = prepData.conduit_token || "";
+    headers['x-oai-convo-session-id'] = uuidv4();
+    
+    const payload = {
+      action: "next",
+      messages: [{ id: uuidv4(), author: { role: "user" }, content: { content_type: "text", parts: [promptStr] } }],
+      model: "gpt-4o-mini",
+      parent_message_id: uuidv4(),
+      stream: true
+    };
+    
+    const summaryResponse = await fetch("https://android.chat.openai.com/backend-api/f/conversation", {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify(payload)
     });
 
     if (summaryResponse.ok) {
-      const resData = await summaryResponse.json();
-      const summaryText = resData.choices[0].message.content.trim();
+      const reader = summaryResponse.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let summaryText = "";
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+        for (let line of lines) {
+          line = line.trim();
+          if (line.startsWith('data: ')) {
+            const d = line.substring(6);
+            if (d === '[DONE]') break;
+            try {
+              const json = JSON.parse(d);
+              const parts = json?.message?.content?.parts;
+              if (parts && parts[0]) summaryText = parts[0];
+            } catch(e) {}
+          }
+        }
+      }
+      
+      summaryText = summaryText.trim();
       console.log("خلاصة النقاش السحابية المحدثة:", summaryText);
 
       // Reconstruct chat history cleanly
