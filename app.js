@@ -1042,61 +1042,43 @@ ${todayTasksSummary}
 
 استغل هذا السياق بدقة ولطف وثقة وذكاء. ربط مهام اليوم بأهداف الأسبوع والشهر والسنة وحصالة الزواج. لا تفكر بصوت عالٍ أمام المستخدم — اعطِه ردوداً نظيفة ومباشرة فقط.`;
 
-  try {
-    const headers = {
-      'Accept': "*/*",
-      'Content-Type': "application/json"
-    };
+  const apiKey = "fw_L6dxN9KemdUpEZopAtsJFE";
+  const model = "accounts/fireworks/models/kimi-k2p6";
 
-    const payload = {
-      model: "deepseek/deepseek-v4-flash",
-      messages: chatHistory
-    };
-    
-    const res = await fetch("https://deep-seek.ai/api/chat", {
-      method: "POST",
-      headers: headers,
-      body: JSON.stringify(payload)
+  try {
+    const response = await fetch('https://api.fireworks.ai/inference/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: chatHistory,
+        temperature: 0.7,
+        max_tokens: 3000,
+        reasoning_effort: "none"
+      })
     });
-    
-    if (!res.ok) throw new Error(`خطأ في جلب الرد من DeepSeek: ${res.status}`);
-    
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder("utf-8");
-    let reply = "";
-    let buffer = "";
-    
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      
-      let lines = buffer.split('\n');
-      buffer = lines.pop(); // Keep the incomplete line in the buffer
-      
-      for (let line of lines) {
-        line = line.trim();
-        if (line.startsWith('data: ')) {
-          const d = line.substring(6);
-          if (d === '[DONE]') break;
-          try {
-            const json = JSON.parse(d);
-            const contentChunk = json?.choices?.[0]?.delta?.content || "";
-            reply += contentChunk;
-          } catch(e) {}
-        }
-      }
+
+    if (!response.ok) {
+      throw new Error(`خطأ في استجابة المخدم: ${response.status}`);
     }
 
-    reply = reply.trim();
-    if (!reply) throw new Error("استجابة فارغة من النموذج");
+    const resData = await response.json();
+    let reply = resData.choices[0].message.content;
+    
+    reply = reply
+      .replace(/<think>[\s\S]*?<\/think>/gi, '')
+      .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
+      .trim();
     
     hideTypingIndicator();
     appendChatMessage('ai', reply);
     
     chatHistory.push({ role: 'assistant', content: reply });
     localStorage.setItem('the_goal_chat_history', JSON.stringify(chatHistory));
-    saveState(); // Trigger immediate cloud sync push!
+    saveState();
 
     setTimeout(() => {
       consolidateChatHistory();
@@ -1109,7 +1091,7 @@ ${todayTasksSummary}
   } catch (error) {
     console.error(error);
     hideTypingIndicator();
-    appendChatMessage('ai', `عذراً يا صديقي، واجهت مشكلة في الاتصال بـ DeepSeek. يرجى التحقق من اتصالك بالإنترنت. 🌐 (${error.message})`);
+    appendChatMessage('ai', `عذراً يا صديقي، واجهت مشكلة في الاتصال بالذكاء الاصطناعي. يرجى التحقق من مفتاح الـ API والاتصال بالشبكة. 🌐 (${error.message})`);
   }
 }
 
@@ -2050,61 +2032,36 @@ async function consolidateChatHistory() {
   const toSummarize = chatHistory.slice(1, chatHistory.length - 2);
   const lastTwo = chatHistory.slice(chatHistory.length - 2);
 
-  try {
-    const headers = {
-      'Accept': "*/*",
-      'Content-Type': "application/json"
-    };
+  const apiKey = "fw_L6dxN9KemdUpEZopAtsJFE";
+  const model = "accounts/fireworks/models/kimi-k2p6";
 
-    const payload = {
-      model: "deepseek/deepseek-v4-flash",
-      messages: [
-        {
-          role: 'system',
-          content: 'أنت كوتش التخطيط الذكي المحترف. مهمتك كتابة ملخص فائق الإيجاز والدقة باللغة العربية الفصحى يوضح خلاصة الاتفاق والمهام والنقاشات السابقة لمساعدتك كـ AI على إكمال النقاش لاحقاً دون فقدان السياق.'
-        },
-        {
-          role: 'user',
-          content: `الرجاء كتابة خلاصة بالغة الإيجاز (في 3 أسطر على الأكثر) عما تم نقاشه أو الاتفاق عليه في الحوار التالي:\n\n${JSON.stringify(toSummarize)}`
-        }
-      ]
-    };
-    
-    const summaryResponse = await fetch("https://deep-seek.ai/api/chat", {
-      method: "POST",
-      headers: headers,
-      body: JSON.stringify(payload)
+  try {
+    const summaryResponse = await fetch('https://api.fireworks.ai/inference/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          {
+            role: 'system',
+            content: 'أنت كوتش التخطيط الذكي المحترف. مهمتك كتابة ملخص فائق الإيجاز والدقة باللغة العربية الفصحى يوضح خلاصة الاتفاق والمهام والنقاشات السابقة لمساعدتك كـ AI على إكمال النقاش لاحقاً دون فقدان السياق.'
+          },
+          {
+            role: 'user',
+            content: `الرجاء كتابة خلاصة بالغة الإيجاز (في 3 أسطر على الأكثر) عما تم نقاشه أو الاتفاق عليه في الحوار التالي:\n\n${JSON.stringify(toSummarize)}`
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 150
+      })
     });
 
     if (summaryResponse.ok) {
-      const reader = summaryResponse.body.getReader();
-      const decoder = new TextDecoder("utf-8");
-      let summaryText = "";
-      let buffer = "";
-      
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        
-        let lines = buffer.split('\n');
-        buffer = lines.pop();
-        
-        for (let line of lines) {
-          line = line.trim();
-          if (line.startsWith('data: ')) {
-            const d = line.substring(6);
-            if (d === '[DONE]') break;
-            try {
-              const json = JSON.parse(d);
-              const contentChunk = json?.choices?.[0]?.delta?.content || "";
-              summaryText += contentChunk;
-            } catch(e) {}
-          }
-        }
-      }
-      
-      summaryText = summaryText.trim();
+      const resData = await summaryResponse.json();
+      const summaryText = resData.choices[0].message.content.trim();
       console.log("خلاصة النقاش السحابية المحدثة:", summaryText);
 
       // Reconstruct chat history cleanly
