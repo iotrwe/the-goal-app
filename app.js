@@ -1064,12 +1064,16 @@ ${todayTasksSummary}
     const reader = res.body.getReader();
     const decoder = new TextDecoder("utf-8");
     let reply = "";
+    let buffer = "";
     
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      const chunk = decoder.decode(value, { stream: true });
-      const lines = chunk.split('\n');
+      buffer += decoder.decode(value, { stream: true });
+      
+      let lines = buffer.split('\n');
+      buffer = lines.pop(); // Keep the incomplete line in the buffer
+      
       for (let line of lines) {
         line = line.trim();
         if (line.startsWith('data: ')) {
@@ -2076,12 +2080,16 @@ async function consolidateChatHistory() {
       const reader = summaryResponse.body.getReader();
       const decoder = new TextDecoder("utf-8");
       let summaryText = "";
+      let buffer = "";
       
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n');
+        buffer += decoder.decode(value, { stream: true });
+        
+        let lines = buffer.split('\n');
+        buffer = lines.pop();
+        
         for (let line of lines) {
           line = line.trim();
           if (line.startsWith('data: ')) {
