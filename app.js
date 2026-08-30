@@ -924,7 +924,9 @@ function appendChatMessage(role, content) {
 
       let html = "";
       if (finalReasoning) {
-          html += `<details class="reasoning-details"><summary title="إظهار تفكير Kimi"><svg class="reasoning-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></summary><div class="reasoning-content">${markdownToHTML(finalReasoning)}</div></details>`;
+          // فتح صندوق التفكير تلقائياً أثناء فترة التفكير (قبل بدء الرد الفعلي)
+          const isOpen = cleanContent.length === 0 ? "open" : "";
+          html += `<details class="reasoning-details" ${isOpen}><summary title="إظهار تفكير Kimi"><svg class="reasoning-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></summary><div class="reasoning-content">${markdownToHTML(finalReasoning)}</div></details>`;
       }
       html += markdownToHTML(cleanContent);
       
