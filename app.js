@@ -916,6 +916,8 @@ function appendChatMessage(role, content) {
       let cleanContent = rawContent
         .replace(/<think>[\s\S]*?<\/think>/gi, '')
         .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
+        .replace(/【.*?】/g, '') // Remove completed citations
+        .replace(/【[^】]*$/g, '') // Remove incomplete citations during streaming
         .trim();
       
       if (cleanContent.includes('```json')) {
