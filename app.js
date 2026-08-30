@@ -1089,17 +1089,31 @@ ${todayTasksSummary}
     };
 
     // استخدام الـ Worker الجديد والمستقر 100%
-    const url = `https://deepseek-proxy.markkeep72.workers.dev/`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
+    const baseUrl = `https://deepseek-proxy.markkeep72.workers.dev`;
+    
+    let response;
+    let usingChatGPTFallback = false;
 
-    if (!response.ok) {
-      throw new Error(`خطأ في استجابة المخدم الوسيط: ${response.status}`);
+    try {
+      response = await fetch(baseUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        throw new Error(`DeepSeek Error: ${response.status}`);
+      }
+    } catch (e) {
+      console.warn("DeepSeek failed or rate-limited. Falling back to ChatGPT-4o-mini...");
+      usingChatGPTFallback = true;
+      response = await fetch(`${baseUrl}/chatgpt`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        throw new Error(`خطأ في استجابة المخدم الوسيط (ChatGPT): ${response.status}`);
+      }
     }
 
     const updater = appendChatMessage('ai', '');
@@ -1139,10 +1153,18 @@ ${todayTasksSummary}
           if (d === '[DONE]') break;
           try {
             const json = JSON.parse(d);
-            const delta = json?.choices?.[0]?.delta || {};
-            reasoningStr += delta.reasoning || delta.reasoning_content || "";
-            contentStr += delta.content || "";
-            updater(contentStr, reasoningStr);
+            if (usingChatGPTFallback) {
+              const parts = json?.message?.content?.parts;
+              if (parts && parts[0]) {
+                contentStr = parts[0];
+                updater(contentStr, reasoningStr);
+              }
+            } else {
+              const delta = json?.choices?.[0]?.delta || {};
+              reasoningStr += delta.reasoning || delta.reasoning_content || "";
+              contentStr += delta.content || "";
+              updater(contentStr, reasoningStr);
+            }
           } catch(e) {}
         }
       }
@@ -1155,10 +1177,18 @@ ${todayTasksSummary}
             const d = line.substring(6);
             try {
                 const json = JSON.parse(d);
-                const delta = json?.choices?.[0]?.delta || {};
-                reasoningStr += delta.reasoning || delta.reasoning_content || "";
-                contentStr += delta.content || "";
-                updater(contentStr, reasoningStr);
+                if (usingChatGPTFallback) {
+                  const parts = json?.message?.content?.parts;
+                  if (parts && parts[0]) {
+                    contentStr = parts[0];
+                    updater(contentStr, reasoningStr);
+                  }
+                } else {
+                  const delta = json?.choices?.[0]?.delta || {};
+                  reasoningStr += delta.reasoning || delta.reasoning_content || "";
+                  contentStr += delta.content || "";
+                  updater(contentStr, reasoningStr);
+                }
             } catch(e) {}
         } else if (line.startsWith('{')) {
             try {
