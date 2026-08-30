@@ -1090,121 +1090,123 @@ ${todayTasksSummary}
 
     // استخدام الـ Worker الجديد والمستقر 100%
     const baseUrl = `https://deepseek-proxy.markkeep72.workers.dev`;
-    
-    let response;
-    let usingChatGPTFallback = false;
-
-    try {
-      response = await fetch(baseUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (!response.ok) {
-        throw new Error(`DeepSeek Error: ${response.status}`);
-      }
-    } catch (e) {
-      console.warn("DeepSeek failed or rate-limited. Falling back to ChatGPT-4o-mini...");
-      usingChatGPTFallback = true;
-      response = await fetch(`${baseUrl}/chatgpt`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (!response.ok) {
-        throw new Error(`خطأ في استجابة المخدم الوسيط (ChatGPT): ${response.status}`);
-      }
-    }
-
     const updater = appendChatMessage('ai', '');
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder("utf-8");
-    let contentStr = "";
-    let reasoningStr = "";
-    let buffer = "";
     
-    let rawDebugDump = "";
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      const chunkStr = decoder.decode(value, { stream: true });
-      rawDebugDump += chunkStr;
-      buffer += chunkStr;
+    const processStream = async (url, isChatGPT) => {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
       
-      let lines = buffer.split('\n');
-      buffer = lines.pop(); // Keep the incomplete line in the buffer
-      
-      for (let line of lines) {
-        line = line.trim();
-        
-        // Handle bulk JSON if the API didn't stream
-        if (line.startsWith('{') && line.endsWith('}')) {
-            try {
-                const json = JSON.parse(line);
-                if (json.choices && json.choices[0].message) {
-                    contentStr += (json.choices[0].message.content || "");
-                    updater(contentStr, reasoningStr);
-                }
-            } catch(e) {}
-        }
-        
-        if (line.startsWith('data: ')) {
-          const d = line.substring(6);
-          if (d === '[DONE]') break;
-          try {
-            const json = JSON.parse(d);
-            if (usingChatGPTFallback) {
-              const parts = json?.message?.content?.parts;
-              if (parts && parts[0]) {
-                contentStr = parts[0];
-                updater(contentStr, reasoningStr);
-              }
-            } else {
-              const delta = json?.choices?.[0]?.delta || {};
-              reasoningStr += delta.reasoning || delta.reasoning_content || "";
-              contentStr += delta.content || "";
-              updater(contentStr, reasoningStr);
-            }
-          } catch(e) {}
-        }
+      if (!response.ok) {
+        throw new Error(`HTTP Error ${response.status}`);
       }
-    }
-    
-    // Process any remaining buffer just in case
-    if (buffer.trim()) {
-        const line = buffer.trim();
-        if (line.startsWith('data: ')) {
-            const d = line.substring(6);
-            try {
-                const json = JSON.parse(d);
-                if (usingChatGPTFallback) {
-                  const parts = json?.message?.content?.parts;
-                  if (parts && parts[0]) {
-                    contentStr = parts[0];
-                    updater(contentStr, reasoningStr);
+      
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let contentStr = "";
+      let reasoningStr = "";
+      let buffer = "";
+      let rawDebugDump = "";
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunkStr = decoder.decode(value, { stream: true });
+        rawDebugDump += chunkStr;
+        
+        if (rawDebugDump.includes('"status":429') || rawDebugDump.includes('limit_exhausted') || rawDebugDump.includes('limitexhausted')) {
+            throw new Error("RATE_LIMIT_429");
+        }
+        
+        buffer += chunkStr;
+        let lines = buffer.split('\n');
+        buffer = lines.pop(); 
+        
+        for (let line of lines) {
+          line = line.trim();
+          
+          if (line.startsWith('{') && line.endsWith('}')) {
+              try {
+                  const json = JSON.parse(line);
+                  if (json.choices && json.choices[0].message) {
+                      contentStr += (json.choices[0].message.content || "");
+                      updater(contentStr, reasoningStr);
                   }
-                } else {
-                  const delta = json?.choices?.[0]?.delta || {};
-                  reasoningStr += delta.reasoning || delta.reasoning_content || "";
-                  contentStr += delta.content || "";
+              } catch(e) {}
+          }
+          
+          if (line.startsWith('data: ')) {
+            const d = line.substring(6);
+            if (d === '[DONE]') break;
+            try {
+              const json = JSON.parse(d);
+              if (isChatGPT) {
+                const parts = json?.message?.content?.parts;
+                if (parts && parts[0]) {
+                  contentStr = parts[0];
                   updater(contentStr, reasoningStr);
                 }
+              } else {
+                const delta = json?.choices?.[0]?.delta || {};
+                reasoningStr += delta.reasoning || delta.reasoning_content || "";
+                contentStr += delta.content || "";
+                updater(contentStr, reasoningStr);
+              }
             } catch(e) {}
-        } else if (line.startsWith('{')) {
-            try {
-                const json = JSON.parse(line);
-                if (json.choices && json.choices[0].message) {
-                    contentStr += (json.choices[0].message.content || "");
-                    updater(contentStr, reasoningStr);
-                }
-            } catch(e) {}
+          }
         }
+      }
+      
+      if (buffer.trim()) {
+          const line = buffer.trim();
+          if (line.startsWith('data: ')) {
+              const d = line.substring(6);
+              try {
+                  const json = JSON.parse(d);
+                  if (isChatGPT) {
+                    const parts = json?.message?.content?.parts;
+                    if (parts && parts[0]) {
+                      contentStr = parts[0];
+                      updater(contentStr, reasoningStr);
+                    }
+                  } else {
+                    const delta = json?.choices?.[0]?.delta || {};
+                    reasoningStr += delta.reasoning || delta.reasoning_content || "";
+                    contentStr += delta.content || "";
+                    updater(contentStr, reasoningStr);
+                  }
+              } catch(e) {}
+          } else if (line.startsWith('{')) {
+              try {
+                  const json = JSON.parse(line);
+                  if (json.choices && json.choices[0].message) {
+                      contentStr += (json.choices[0].message.content || "");
+                      updater(contentStr, reasoningStr);
+                  }
+              } catch(e) {}
+          }
+      }
+
+      contentStr = contentStr.trim();
+      if (!contentStr && !reasoningStr) {
+          throw new Error("RAW DUMP: " + rawDebugDump.substring(0, 500));
+      }
+      
+      return { contentStr, reasoningStr };
+    };
+
+    let result;
+    try {
+      result = await processStream(baseUrl, false);
+    } catch (e) {
+      console.warn("DeepSeek failed or rate-limited. Falling back to ChatGPT-4o-mini...", e);
+      // Fallback
+      result = await processStream(`${baseUrl}/chatgpt`, true);
     }
 
-    contentStr = contentStr.trim();
-    if (!contentStr && !reasoningStr) {
-        throw new Error("RAW DUMP: " + rawDebugDump.substring(0, 500));
-    }
+    const { contentStr, reasoningStr } = result;
     
     updater(contentStr, reasoningStr);
     hideTypingIndicator();
