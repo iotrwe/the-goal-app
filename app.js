@@ -1066,10 +1066,13 @@ ${todayTasksSummary}
     let reply = "";
     let buffer = "";
     
+    let rawDebugDump = "";
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      buffer += decoder.decode(value, { stream: true });
+      const chunkStr = decoder.decode(value, { stream: true });
+      rawDebugDump += chunkStr;
+      buffer += chunkStr;
       
       let lines = buffer.split('\n');
       buffer = lines.pop(); // Keep the incomplete line in the buffer
@@ -1122,7 +1125,9 @@ ${todayTasksSummary}
     }
 
     reply = reply.trim();
-    if (!reply) throw new Error("استجابة فارغة من النموذج");
+    if (!reply) {
+        throw new Error("RAW DUMP: " + rawDebugDump.substring(0, 500));
+    }
     
     hideTypingIndicator();
     appendChatMessage('ai', reply);
