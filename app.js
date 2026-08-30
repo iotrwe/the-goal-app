@@ -924,7 +924,7 @@ function appendChatMessage(role, content) {
 
       let html = "";
       if (finalReasoning) {
-          html += `<details class="reasoning-details"><summary>▼ كواليس تفكير Kimi</summary><div class="reasoning-content">${markdownToHTML(finalReasoning)}</div></details>`;
+          html += `<details class="reasoning-details"><summary title="إظهار تفكير Kimi"><svg class="reasoning-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></summary><div class="reasoning-content">${markdownToHTML(finalReasoning)}</div></details>`;
       }
       html += markdownToHTML(cleanContent);
       
@@ -1051,6 +1051,7 @@ async function callDeepSeekAI(userMessageText) {
 
 🚨 معلومات الوقت والتخطيط:
 - اليوم الحالي هو: ${todayArabicName}
+- الوقت الآن هو: ${timeStr}
 - الغد هو: ${tomorrowArabicName}
 - **مهم جداً:** المستخدم قد يطلب التخطيط لليوم الحالي (${todayArabicName}) أو الغد (${tomorrowArabicName}) أو أي يوم آخر يذكره. افهم قصده بوضوح من السياق ولا تفرض عليه تخطيط الغد فقط. إذا قال "النهارده" أو "اليوم" فهو يقصد ${todayArabicName}. إذا قال "بكرة" أو "الغد" فهو يقصد ${tomorrowArabicName}. تصرف بمرونة تامة.
 
