@@ -878,34 +878,52 @@ function appendChatMessage(role, content) {
   const msgEl = document.createElement('div');
   msgEl.className = `message ${role}`;
   
-  // Strip internal thinking/reasoning tags that kimi-k2p6 sometimes exposes
-  let cleanContent = content
-    .replace(/<think>[\s\S]*?<\/think>/gi, '')
-    .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
-    .trim();
+  // Unique id for copy target
+  const msgId = `msg-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
   
-  if (cleanContent.includes('```json')) {
-    cleanContent = cleanContent.split('```json')[0].trim();
-  }
+  const bubbleEl = document.createElement('div');
+  bubbleEl.className = 'message-bubble';
+  bubbleEl.id = msgId;
 
   const now = new Date();
   const timeStr = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
 
-  // Unique id for copy target
-  const msgId = `msg-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
-
-  msgEl.innerHTML = `
-    <div class="message-bubble" id="${msgId}">${markdownToHTML(cleanContent)}</div>
-    <div class="message-meta">
+  const metaEl = document.createElement('div');
+  metaEl.className = 'message-meta';
+  metaEl.innerHTML = `
       <button class="msg-copy-btn" title="نسخ" onclick="copyMsgText('${msgId}', this)">
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
       </button>
       <span class="message-time">${timeStr}</span>
-    </div>
   `;
 
+  msgEl.appendChild(bubbleEl);
+  msgEl.appendChild(metaEl);
   chatMessages.appendChild(msgEl);
   chatMessages.scrollTop = chatMessages.scrollHeight;
+
+  const renderContent = (rawContent, rawReasoning = "") => {
+      let cleanContent = rawContent
+        .replace(/<think>[\s\S]*?<\/think>/gi, '')
+        .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
+        .trim();
+      
+      if (cleanContent.includes('```json')) {
+        cleanContent = cleanContent.split('```json')[0].trim();
+      }
+
+      let html = "";
+      if (rawReasoning.trim()) {
+          html += `<details class="reasoning-details"><summary>▼ كواليس تفكير Kimi</summary><div class="reasoning-content">${markdownToHTML(rawReasoning)}</div></details>`;
+      }
+      html += markdownToHTML(cleanContent);
+      
+      bubbleEl.innerHTML = html;
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+  };
+
+  renderContent(content);
+  return renderContent;
 }
 
 function copyMsgText(msgId, btn) {
@@ -1070,9 +1088,11 @@ ${todayTasksSummary}
       throw new Error(`خطأ في استجابة المخدم الوسيط: ${response.status}`);
     }
 
+    const updater = appendChatMessage('ai', '');
     const reader = response.body.getReader();
     const decoder = new TextDecoder("utf-8");
-    let reply = "";
+    let contentStr = "";
+    let reasoningStr = "";
     let buffer = "";
     
     let rawDebugDump = "";
@@ -1094,7 +1114,8 @@ ${todayTasksSummary}
             try {
                 const json = JSON.parse(line);
                 if (json.choices && json.choices[0].message) {
-                    reply += (json.choices[0].message.content || "");
+                    contentStr += (json.choices[0].message.content || "");
+                    updater(contentStr, reasoningStr);
                 }
             } catch(e) {}
         }
@@ -1104,10 +1125,10 @@ ${todayTasksSummary}
           if (d === '[DONE]') break;
           try {
             const json = JSON.parse(d);
-            // Handle both standard content and reasoning content (DeepSeek R1/V4)
             const delta = json?.choices?.[0]?.delta || {};
-            const contentChunk = delta.content || delta.reasoning || delta.reasoning_content || "";
-            reply += contentChunk;
+            reasoningStr += delta.reasoning || delta.reasoning_content || "";
+            contentStr += delta.content || "";
+            updater(contentStr, reasoningStr);
           } catch(e) {}
         }
       }
@@ -1121,27 +1142,31 @@ ${todayTasksSummary}
             try {
                 const json = JSON.parse(d);
                 const delta = json?.choices?.[0]?.delta || {};
-                reply += (delta.content || delta.reasoning || delta.reasoning_content || "");
+                reasoningStr += delta.reasoning || delta.reasoning_content || "";
+                contentStr += delta.content || "";
+                updater(contentStr, reasoningStr);
             } catch(e) {}
         } else if (line.startsWith('{')) {
             try {
                 const json = JSON.parse(line);
                 if (json.choices && json.choices[0].message) {
-                    reply += (json.choices[0].message.content || "");
+                    contentStr += (json.choices[0].message.content || "");
+                    updater(contentStr, reasoningStr);
                 }
             } catch(e) {}
         }
     }
 
-    reply = reply.trim();
-    if (!reply) {
+    contentStr = contentStr.trim();
+    if (!contentStr && !reasoningStr) {
         throw new Error("RAW DUMP: " + rawDebugDump.substring(0, 500));
     }
     
+    updater(contentStr, reasoningStr);
     hideTypingIndicator();
-    appendChatMessage('ai', reply);
     
-    chatHistory.push({ role: 'assistant', content: reply });
+    // Add only the final message to history
+    chatHistory.push({ role: 'assistant', content: contentStr });
     localStorage.setItem('the_goal_chat_history', JSON.stringify(chatHistory));
     saveState(); // Trigger immediate cloud sync push!
 
@@ -1149,8 +1174,8 @@ ${todayTasksSummary}
       consolidateChatHistory();
     }, 500);
 
-    if (reply.includes('```json')) {
-      extractAndProcessJSONPlan(reply);
+    if (contentStr.includes('```json')) {
+      extractAndProcessJSONPlan(contentStr);
     }
 
   } catch (error) {
