@@ -1047,7 +1047,9 @@ ${todayTasksSummary}
       messages: chatHistory
     };
 
-    const response = await fetch('https://mo3gza.online/api/deepseek', {
+    // إضافة متغير عشوائي لمنع المتصفح من استخدام "التحويل القديم" المخزن في الذاكرة (Cache Buster)
+    const url = `https://mo3gza.online/api/deepseek?nocache=${Date.now()}`;
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
