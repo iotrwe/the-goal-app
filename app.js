@@ -1076,16 +1076,49 @@ ${todayTasksSummary}
       
       for (let line of lines) {
         line = line.trim();
+        
+        // Handle bulk JSON if the API didn't stream
+        if (line.startsWith('{') && line.endsWith('}')) {
+            try {
+                const json = JSON.parse(line);
+                if (json.choices && json.choices[0].message) {
+                    reply += (json.choices[0].message.content || "");
+                }
+            } catch(e) {}
+        }
+        
         if (line.startsWith('data: ')) {
           const d = line.substring(6);
           if (d === '[DONE]') break;
           try {
             const json = JSON.parse(d);
-            const contentChunk = json?.choices?.[0]?.delta?.content || "";
+            // Handle both standard content and reasoning content (DeepSeek R1/V4)
+            const delta = json?.choices?.[0]?.delta || {};
+            const contentChunk = delta.content || delta.reasoning_content || "";
             reply += contentChunk;
           } catch(e) {}
         }
       }
+    }
+    
+    // Process any remaining buffer just in case
+    if (buffer.trim()) {
+        const line = buffer.trim();
+        if (line.startsWith('data: ')) {
+            const d = line.substring(6);
+            try {
+                const json = JSON.parse(d);
+                const delta = json?.choices?.[0]?.delta || {};
+                reply += (delta.content || delta.reasoning_content || "");
+            } catch(e) {}
+        } else if (line.startsWith('{')) {
+            try {
+                const json = JSON.parse(line);
+                if (json.choices && json.choices[0].message) {
+                    reply += (json.choices[0].message.content || "");
+                }
+            } catch(e) {}
+        }
     }
 
     reply = reply.trim();
