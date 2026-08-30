@@ -1047,11 +1047,12 @@ async function callDeepSeekAI(userMessageText) {
 ملاحظة: لا تضع أي أهداف أسبوعية أو شهرية. خطة لليوم التالي أو اليوم الحالي فقط.`;
 
   // Injecting goals context dynamically so Kimi acts as a personalized coach!
+  const currentTimeStr = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
   systemPromptObj.content = `${originalSystemPrompt}
 
 🚨 معلومات الوقت والتخطيط:
 - اليوم الحالي هو: ${todayArabicName}
-- الوقت الآن هو: ${timeStr}
+- الوقت الآن هو: ${currentTimeStr}
 - الغد هو: ${tomorrowArabicName}
 - **مهم جداً:** المستخدم قد يطلب التخطيط لليوم الحالي (${todayArabicName}) أو الغد (${tomorrowArabicName}) أو أي يوم آخر يذكره. افهم قصده بوضوح من السياق ولا تفرض عليه تخطيط الغد فقط. إذا قال "النهارده" أو "اليوم" فهو يقصد ${todayArabicName}. إذا قال "بكرة" أو "الغد" فهو يقصد ${tomorrowArabicName}. تصرف بمرونة تامة.
 
