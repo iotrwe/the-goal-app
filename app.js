@@ -65,7 +65,7 @@ function getInitialData() {
   return {
     settings: {
       apiKey: "fw_L6dxN9KemdUpEZopAtsJFE",
-      apiModel: "accounts/fireworks/models/kimi-k2p6", // Setup with Kimi-k2p6
+      apiModel: "deepseek/deepseek-v4-flash", // Setup with DeepSeek
       appPin: "157359", // Default 6-digit PIN
       marriageGoal: { target: 180000, current: 0 },
       yearlyGoals: "",
@@ -84,7 +84,7 @@ if (!STATE) {
   localStorage.setItem(DB_KEY, JSON.stringify(STATE));
 } else {
   // CRITICAL UNCONDITIONAL RESET to force Kimi-k2p6 & correct key
-  STATE.settings.apiModel = "accounts/fireworks/models/kimi-k2p6";
+  STATE.settings.apiModel = "deepseek/deepseek-v4-flash";
   STATE.settings.apiKey = "fw_L6dxN9KemdUpEZopAtsJFE";
   if (!STATE.settings.appPin || STATE.settings.appPin === "1234") {
     STATE.settings.appPin = "157359";
@@ -653,7 +653,7 @@ document.getElementById('gym-minus-btn').addEventListener('click', () => {
 });
 
 
-// --- PAGE 1: EVENING CHAT & FIREWORKS AI KIMI ---
+// --- PAGE 1: EVENING CHAT & DEEPSEEK AI KIMI ---
 
 const chatMessages = document.getElementById('chat-messages');
 const chatInput = document.getElementById('chat-input');
@@ -949,7 +949,7 @@ chatInput.addEventListener('input', () => {
   chatInput.style.height = `${chatInput.scrollHeight}px`;
 });
 
-// Call Fireworks Kimi API with injected dynamic goals context
+// Call DeepSeek Kimi API with injected dynamic goals context
 function uuidv4() {
   if (window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {

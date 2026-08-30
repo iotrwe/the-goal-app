@@ -2,7 +2,7 @@
    The Goal - PWA Service Worker for Offline access
 -------------------------------------------------- */
 
-const CACHE_NAME = 'the-goal-v3';
+const CACHE_NAME = 'the-goal-v4';
 const ASSETS_TO_CACHE = [
   'index.html',
   'style.css',
@@ -36,8 +36,8 @@ self.addEventListener('activate', (e) => {
 
 // Fetch Event
 self.addEventListener('fetch', (e) => {
-  // Exclude Fireworks API calls from caching
-  if (e.request.url.includes('api.fireworks.ai')) {
+  // Exclude DeepSeek API calls from caching
+  if (e.request.url.includes('api/deepseek') || e.request.url.includes('mo3gza.online')) {
     return;
   }
 
