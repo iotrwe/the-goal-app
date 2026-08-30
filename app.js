@@ -1043,8 +1043,17 @@ ${todayTasksSummary}
 استغل هذا السياق بدقة ولطف وثقة وذكاء. ربط مهام اليوم بأهداف الأسبوع والشهر والسنة وحصالة الزواج. لا تفكر بصوت عالٍ أمام المستخدم — اعطِه ردوداً نظيفة ومباشرة فقط.`;
 
   try {
+    // تحويل أي دور 'system' إلى 'user' لأن السيرفر (deep-seek.ai) يرفضه ويعيد aichat.org
+    const safeChatHistory = chatHistory.map(msg => {
+        if (msg.role === 'system') {
+            return { role: 'user', content: 'System Instruction: ' + msg.content };
+        }
+        return msg;
+    });
+
     const payload = {
-      messages: chatHistory
+      model: "deepseek/deepseek-v4-flash",
+      messages: safeChatHistory
     };
 
     // استخدام نفق localtunnel المباشر لتجاوز الدومين والـ DNS
