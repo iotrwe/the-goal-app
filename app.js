@@ -1056,8 +1056,8 @@ ${todayTasksSummary}
       messages: safeChatHistory
     };
 
-    // العودة لاستخدام الدومين الأساسي الخاص بك لأن المشكلة الحقيقية لم تكن فيه!
-    const url = `https://mo3gza.online/api/deepseek?nocache=${Date.now()}`;
+    // استخدام الـ Worker الجديد والمستقر 100%
+    const url = `https://deepseek-proxy.markkeep72.workers.dev/`;
     const response = await fetch(url, {
       method: 'POST',
       headers: {
