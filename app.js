@@ -1199,11 +1199,11 @@ ${todayTasksSummary}
 
     let result;
     try {
-      result = await processStream(baseUrl, false);
-    } catch (e) {
-      console.warn("DeepSeek failed or rate-limited. Falling back to ChatGPT-4o-mini...", e);
-      // Fallback
       result = await processStream(`${baseUrl}/chatgpt`, true);
+    } catch (e) {
+      console.warn("ChatGPT failed or rate-limited. Falling back to DeepSeek...", e);
+      // Fallback
+      result = await processStream(baseUrl, false);
     }
 
     const { contentStr, reasoningStr } = result;
