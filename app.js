@@ -903,6 +903,16 @@ function appendChatMessage(role, content) {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 
   const renderContent = (rawContent, rawReasoning = "") => {
+      // استخراج التفكير من داخل النص إذا كان المزود يدمجه في <think>
+      let extractedThinking = "";
+      const thinkMatch = rawContent.match(/<think>([\s\S]*?)<\/think>/i) || rawContent.match(/<thinking>([\s\S]*?)<\/thinking>/i);
+      if (thinkMatch && thinkMatch[1]) {
+          extractedThinking = thinkMatch[1].trim();
+      }
+
+      // دمج التفكير المستخرج مع التفكير القادم من الحقل المنفصل (إن وجد)
+      const finalReasoning = (rawReasoning + "\n" + extractedThinking).trim();
+
       let cleanContent = rawContent
         .replace(/<think>[\s\S]*?<\/think>/gi, '')
         .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
@@ -913,8 +923,8 @@ function appendChatMessage(role, content) {
       }
 
       let html = "";
-      if (rawReasoning.trim()) {
-          html += `<details class="reasoning-details"><summary>▼ كواليس تفكير Kimi</summary><div class="reasoning-content">${markdownToHTML(rawReasoning)}</div></details>`;
+      if (finalReasoning) {
+          html += `<details class="reasoning-details"><summary>▼ كواليس تفكير Kimi</summary><div class="reasoning-content">${markdownToHTML(finalReasoning)}</div></details>`;
       }
       html += markdownToHTML(cleanContent);
       
