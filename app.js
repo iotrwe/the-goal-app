@@ -1056,13 +1056,12 @@ ${todayTasksSummary}
       messages: safeChatHistory
     };
 
-    // استخدام نفق localtunnel المباشر لتجاوز الدومين والـ DNS
-    const url = `https://tough-kiwis-end.loca.lt/api/deepseek`;
+    // العودة لاستخدام الدومين الأساسي الخاص بك لأن المشكلة الحقيقية لم تكن فيه!
+    const url = `https://mo3gza.online/api/deepseek?nocache=${Date.now()}`;
     const response = await fetch(url, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Bypass-Tunnel-Reminder': 'true' // لتجاوز صفحة حماية localtunnel
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload)
     });
