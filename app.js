@@ -1047,12 +1047,13 @@ ${todayTasksSummary}
       messages: chatHistory
     };
 
-    // إضافة متغير عشوائي لمنع المتصفح من استخدام "التحويل القديم" المخزن في الذاكرة (Cache Buster)
-    const url = `https://mo3gza.online/api/deepseek?nocache=${Date.now()}`;
+    // استخدام نفق localtunnel المباشر لتجاوز الدومين والـ DNS
+    const url = `https://tough-kiwis-end.loca.lt/api/deepseek`;
     const response = await fetch(url, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Bypass-Tunnel-Reminder': 'true' // لتجاوز صفحة حماية localtunnel
       },
       body: JSON.stringify(payload)
     });
