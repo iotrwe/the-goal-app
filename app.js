@@ -1094,7 +1094,7 @@ ${todayTasksSummary}
             const json = JSON.parse(d);
             // Handle both standard content and reasoning content (DeepSeek R1/V4)
             const delta = json?.choices?.[0]?.delta || {};
-            const contentChunk = delta.content || delta.reasoning_content || "";
+            const contentChunk = delta.content || delta.reasoning || delta.reasoning_content || "";
             reply += contentChunk;
           } catch(e) {}
         }
@@ -1109,7 +1109,7 @@ ${todayTasksSummary}
             try {
                 const json = JSON.parse(d);
                 const delta = json?.choices?.[0]?.delta || {};
-                reply += (delta.content || delta.reasoning_content || "");
+                reply += (delta.content || delta.reasoning || delta.reasoning_content || "");
             } catch(e) {}
         } else if (line.startsWith('{')) {
             try {
